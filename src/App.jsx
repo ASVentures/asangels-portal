@@ -45,7 +45,7 @@ export default function App(){
   async function handlePw(){if(pw===ADMIN_PW){setStep("name");setErr("");setPw("__a__");}else if(pw===PORTAL_PW){setStep("name");setErr("");}else setErr("Incorrect password. Contact Dr. Shah for access.");}
   async function handleName(){if(!nameV.trim()){setErr("Please enter your name.");return;}const ad=pw==="__a__";const uu={id:uid(),name:nameV.trim(),isAdmin:ad};setU(uu);await sSet("asa:s",uu);await track({userId:uu.id,userName:uu.name,type:"login"});setView(ad?"admin":"room");setErr("");}
   async function handleDeal(d){setSel(d);setView("deal");setDocAcc({});if(u)await track({userId:u.id,userName:u.name,type:"deal_view",dealId:d.id,dealName:d.name});}
-  async function handleDoc(i,n){setDocAcc(p=>({...p,[i]:true}));if(u&&sel)await track({userId:u.id,userName:u.name,type:"doc",dealId:sel.id,dealName:sel.name,docIdx:i,docName:n});}
+  async function handleDoc(i,n){setDocAcc(p=>({...p,[i]:true}));if(u&&sel)await track({userId:u.id,userName:u.name,type:"doc",dealId:sel.id,dealName:sel.name,docIdx:i,docName:n});if(sel.docUrls&&sel.docUrls[i]&&sel.docUrls[i]!=="#")window.open(sel.docUrls[i],"_blank");}
   async function logout(){await sSet("asa:s",null);setU(null);setView("login");setStep("password");setPw("");setName("");setSel(null);}
   function copyWA(){if(sel){navigator.clipboard?.writeText(makeWAPost(sel)).then(()=>{setCopied(true);setTimeout(()=>setCopied(false),2500);});}}
 
