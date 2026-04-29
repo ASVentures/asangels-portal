@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 
 const PORTAL_PW = "ASAngels2026", ADMIN_PW = "AdminASA2026";
 const NAVY = "#1B3A6B", GOLD = "#C9922A";
@@ -19,6 +19,23 @@ const DEALS = [
   {id:"circurabio",name:"Circurabio",tagline:"Biosensor-Driven Gene and Cell Therapy Platform",stage:"Discovery Stage — Gathering Information",founder:"Dr. Shailesh Agarwal MD — Harvard / Brigham & Women's Hospital",location:"Boston, MA",raised:"No public funding record",round:"Unknown · earliest stage deal in pipeline",tam:"$60B+",tamNote:"Gene and cell therapy market projected $60B+ by 2030. Biosensor-actuator approach is next-gen.",projections:"Platform technology — TAM is indication-dependent. Too early to model.",competitors:[{name:"MIT/Stanford synthetic biology programs",note:"Heavily patented gene circuit IP — FTO analysis required"},{name:"Twist Bioscience",note:"Synthetic biology commercial leader with broad IP"},{name:"CAR-T leaders (Bristol-Myers, Gilead)",note:"Static cell therapy incumbents · biosensor approach is differentiated if it works"}],vital:{V:{score:"Unknown",summary:"No public product description. Cannot score without a meeting."},I:{score:"Unknown",summary:"Could be transformative. 'If' carries all the weight."},T:{score:"Unknown",summary:"No public customers, revenue, or clinical data."},A:{score:"Unknown",summary:"Unknown until product is characterized."},L:{score:"Unknown",summary:"Approach may be proprietary — need a meeting before any assessment."}}},
 ];
 
+const NEWS_FEEDS = [
+  {query:"Red Sky Health AI denial management RCM",label:"Red Sky Health",type:"Portfolio"},
+  {query:"Youlify medical billing AI RCM",label:"Youlify",type:"Portfolio"},
+  {query:"Adipothera lymphedema PPARgamma therapy",label:"Adipothera",type:"Portfolio"},
+  {query:"Calaris Diagnostics salivary liver fibrosis",label:"Calaris Dx",type:"Portfolio"},
+  {query:"Extrinsic Immunity NETrolyze TNBC",label:"EIT",type:"Portfolio"},
+  {query:"Epic Airway Systems airway management device",label:"Epic Airway",type:"Portfolio"},
+  {query:"insurance claim denial AI healthcare 2026",label:"RCM Industry",type:"Industry"},
+  {query:"salivary diagnostics biomarker 2026",label:"Salivary Dx",type:"Industry"},
+  {query:"triple negative breast cancer immunotherapy 2026",label:"TNBC Research",type:"Industry"},
+  {query:"lymphedema drug treatment FDA 2026",label:"Lymphedema",type:"Industry"},
+  {query:"Waystar nThrive RCM AI healthcare",label:"Competitor: Waystar",type:"Competitor"},
+  {query:"Xenetic Biosciences NETs cancer",label:"Competitor: Xenetic",type:"Competitor"},
+  {query:"FibroScan liver diagnostics ELF score",label:"Competitor: FibroScan",type:"Competitor"},
+  {query:"NFL concussion CTE biomarker 2026",label:"CTE Research",type:"Industry"},
+];
+
 async function sGet(k,sh=false){try{const r=await window.storage.get(k,sh);return r?JSON.parse(r.value):null;}catch{return null;}}
 async function sSet(k,v,sh=false){try{await window.storage.set(k,JSON.stringify(v),sh);}catch{}}
 function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,7);}
@@ -29,6 +46,75 @@ function makeWAPost(d){
   const dot=(SM[d.stage]||{}).dot||"🔵";
   const vl=(k,l)=>{const v=d.vital[k];const m=VM[v.score]||VM["Unknown"];return`*${k} — ${l}:* ${m.label}\n↳ ${v.summary}`;};
   return `🏥 *ASAngels | Deal Alert*\n━━━━━━━━━━━━━━━━━━━━━━━\n\n*${d.name.toUpperCase()}*\n_${d.tagline}_\n\n*Stage:* ${dot} ${d.stage}\n*Founder:* ${d.founder}\n*Location:* ${d.location}\n*Financing:* ${d.raised}\n\n━━━━━━━━━━━━━━━━━━━━━━━\n💰 *MARKET OPPORTUNITY*\n\n*TAM:* ${d.tam}\n${d.tamNote}\n\n📈 *Projections:* ${d.projections}\n\n━━━━━━━━━━━━━━━━━━━━━━━\n🏆 *KEY PLAYERS IN SPACE*\n${d.competitors.map(c=>`• *${c.name}* — ${c.note}`).join('\n')}\n\n━━━━━━━━━━━━━━━━━━━━━━━\n📊 *VITAL ASSESSMENT*\n\n${vl('V','Value')}\n\n${vl('I','Impact')}\n\n${vl('T','Traction')}\n\n${vl('A','Adoption')}\n\n${vl('L','Landscape')}\n\n━━━━━━━━━━━━━━━━━━━━━━━\n📁 *DEAL DOCUMENTS — 6 Available*\n\n🔒 asangels.shahrx.com\n_Message Dr. Shah for your access password_\n\n1️⃣ Quick Hit — 60-second summary\n2️⃣ Deal Email — LP announcement  \n3️⃣ One-Pager — Full investment thesis\n4️⃣ Short GP Memo — Internal GP brief\n5️⃣ Eisenhower Memo — Full diligence report\n6️⃣ Diligence Call Agenda\n\n━━━━━━━━━━━━━━━━━━━━━━━\n_ASAngels Management LLC · For accredited investors only_`;
+}
+
+function TickerBand({user}) {
+  const [items,setItems]=useState([]);
+  const [loading,setLoading]=useState(true);
+  const [pos,setPos]=useState(0);
+  const tickerRef=useRef(null);
+  const GOLD="#C9922A", NAVY="#1B3A6B";
+
+  useEffect(()=>{
+    async function fetchNews(){
+      try {
+        const results=[];
+        for(const feed of NEWS_FEEDS.slice(0,6)){
+          const res=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:400,messages:[{role:"user",content:`Search for the 2 most recent news headlines (2025-2026) about: "${feed.query}". Return ONLY a JSON array like: [{"headline":"...","source":"...","date":"..."}]. No other text.`}],tools:[{type:"web_search_20250305",name:"web_search"}]})});
+          const data=await res.json();
+          const text=data.content?.filter(c=>c.type==="text").map(c=>c.text).join("");
+          try{
+            const clean=text.replace(/```json|```/g,"").trim();
+            const parsed=JSON.parse(clean);
+            parsed.forEach(item=>results.push({...item,label:feed.label,type:feed.type}));
+          }catch{}
+        }
+        if(results.length>0)setItems(results);
+      }catch(e){console.error(e);}
+      finally{setLoading(false);}
+    }
+    fetchNews();
+  },[]);
+
+  useEffect(()=>{
+    if(items.length===0)return;
+    const interval=setInterval(()=>setPos(p=>p-1),30);
+    return()=>clearInterval(interval);
+  },[items]);
+
+  const typeColor={Portfolio:"#166534",Industry:"#185FA5",Competitor:"#7F1D1D"};
+  const typeBg={Portfolio:"#EAF3DE",Industry:"#E6F1FB",Competitor:"#FCEBEB"};
+
+  if(loading)return(
+    <div style={{background:NAVY,borderTop:`2px solid ${GOLD}`,borderBottom:`2px solid ${GOLD}`,padding:"8px 16px",display:"flex",alignItems:"center",gap:12}}>
+      <div style={{fontSize:10,color:GOLD,fontWeight:700,fontFamily:"Georgia,serif",whiteSpace:"nowrap",flexShrink:0}}>📡 LIVE FEED</div>
+      <div style={{fontSize:11,color:"#8fa8c8",fontFamily:"Georgia,serif",fontStyle:"italic"}}>Loading latest news on portfolio companies and industry...</div>
+    </div>
+  );
+
+  if(items.length===0)return null;
+
+  const doubled=[...items,...items,...items];
+  const totalWidth=doubled.length*340;
+
+  return(
+    <div style={{background:NAVY,borderTop:`2px solid ${GOLD}`,borderBottom:`2px solid ${GOLD}`,padding:"6px 0",overflow:"hidden",position:"relative"}}>
+      <div style={{display:"flex",alignItems:"center"}}>
+        <div style={{background:GOLD,padding:"4px 12px",fontWeight:700,fontSize:10,color:"white",fontFamily:"Georgia,serif",whiteSpace:"nowrap",flexShrink:0,letterSpacing:"0.1em",zIndex:2}}>📡 LIVE</div>
+        <div style={{overflow:"hidden",flex:1,position:"relative"}}>
+          <div style={{display:"flex",gap:0,transform:`translateX(${pos % totalWidth}px)`,whiteSpace:"nowrap",transition:"none"}}>
+            {doubled.map((item,i)=>(
+              <div key={i} style={{display:"inline-flex",alignItems:"center",gap:8,padding:"0 24px",borderRight:"1px solid rgba(255,255,255,0.15)",flexShrink:0}}>
+                <span style={{background:typeBg[item.type]||"#EBF1F8",color:typeColor[item.type]||NAVY,fontSize:9,fontWeight:700,padding:"1px 6px",borderRadius:3,fontFamily:"Georgia,serif",whiteSpace:"nowrap"}}>{item.label}</span>
+                <span style={{fontSize:11,color:"#e0e8f4",fontFamily:"Georgia,serif",whiteSpace:"nowrap",maxWidth:380,overflow:"hidden",textOverflow:"ellipsis"}}>{item.headline}</span>
+                <span style={{fontSize:10,color:"#6080a0",fontFamily:"Georgia,serif",whiteSpace:"nowrap"}}>{item.source} · {item.date}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 export default function App(){
@@ -95,6 +181,7 @@ export default function App(){
             <button onClick={logout} style={{background:"rgba(255,255,255,0.07)",color:"#8fa8c8",border:"1px solid rgba(255,255,255,0.15)",borderRadius:5,padding:"4px 10px",fontSize:10,cursor:"pointer",fontFamily:"Georgia,serif"}}>Sign Out</button>
           </div>
         </div>
+        <TickerBand user={u}/>
         <div style={{maxWidth:1080,margin:"0 auto",padding:"36px 20px"}}>
           <div style={{marginBottom:28}}>
             <div style={{fontSize:10,color:GOLD,letterSpacing:"0.2em",fontFamily:"Georgia,serif",marginBottom:6}}>ASANGELS PORTFOLIO — APRIL 2026</div>
