@@ -30,30 +30,29 @@ const PUBLIC_DEALS = [
 ];
 
 const NEWS_FEEDS = [
-  {query:"Red Sky Health AI denial management",label:"Red Sky Health",type:"Portfolio"},
-  {query:"Youlify medical billing AI automation",label:"Youlify",type:"Portfolio"},
-  {query:"Adipothera lymphedema PPARgamma",label:"Adipothera",type:"Portfolio"},
-  {query:"Calaris Diagnostics liver fibrosis saliva",label:"Calaris Dx",type:"Portfolio"},
-  {query:"Extrinsic Immunity Therapeutics NETrolyze TNBC",label:"EIT",type:"Portfolio"},
-  {query:"Epic Airway Systems airway device",label:"Epic Airway",type:"Portfolio"},
-  {query:"Waystar AI revenue cycle denial management 2026",label:"Waystar",type:"Competitor"},
-  {query:"Experian Health nThrive RCM AI 2026",label:"nThrive / Experian",type:"Competitor"},
-  {query:"Xenetic Biosciences NETs cancer DNase 2026",label:"Xenetic Bio",type:"Competitor"},
-  {query:"Neutrolis Citryll NET targeting therapy 2026",label:"Neutrolis/Citryll",type:"Competitor"},
-  {query:"FibroScan ELF score liver fibrosis diagnostics 2026",label:"FibroScan/ELF",type:"Competitor"},
-  {query:"LMA Supreme King LT supraglottic airway EMS 2026",label:"LMA/King LT",type:"Competitor"},
-  {query:"sacituzumab govitecan pembrolizumab TNBC 2026",label:"TNBC SOC",type:"Competitor"},
-  {query:"insurance claim denial AI healthcare revenue cycle 2026",label:"RCM Industry",type:"Industry"},
-  {query:"salivary biomarker diagnostics FDA clearance 2026",label:"Salivary Dx",type:"Industry"},
-  {query:"triple negative breast cancer immunotherapy metastasis 2026",label:"TNBC Research",type:"Industry"},
-  {query:"lymphedema drug treatment clinical trial 2026",label:"Lymphedema",type:"Industry"},
-  {query:"neutrophil extracellular traps cancer tumor 2026",label:"NETs Science",type:"Industry"},
-  {query:"NFL concussion CTE biomarker brain injury 2026",label:"CTE/Concussion",type:"Industry"},
-  {query:"FDA 510k medical device clearance airway 2026",label:"Device Regulation",type:"Industry"},
-  {query:"Saudi Arabia healthcare Vision 2030 ASC hospital 2026",label:"Saudi Health",type:"Industry"},
-  {query:"NAFLD MASLD liver disease diagnosis treatment 2026",label:"Liver Disease",type:"Industry"},
-  {query:"prehospital emergency airway management EMS 2026",label:"EMS Airway",type:"Industry"},
-  {query:"physician burnout financial independence investing 2026",label:"Physician Finance",type:"Industry"},
+  {query:"Red Sky Health AI denial management insurance 2026",label:"Red Sky Health",type:"Portfolio"},
+  {query:"Youlify medical billing AI automation 2026",label:"Youlify",type:"Portfolio"},
+  {query:"Adipothera lymphedema PPARgamma topical 2026",label:"Adipothera",type:"Portfolio"},
+  {query:"Calaris Diagnostics salivary liver fibrosis SALF 2026",label:"Calaris Dx",type:"Portfolio"},
+  {query:"Extrinsic Immunity NETrolyze TNBC neutrophil 2026",label:"EIT",type:"Portfolio"},
+  {query:"Epic Airway Systems 510k airway intubation EMS 2026",label:"Epic Airway",type:"Portfolio"},
+  {query:"OraTek saliva concussion TBI biomarker NFL 2026",label:"OraTek",type:"Portfolio"},
+  {query:"SeeMedX heart failure bioimpedance hemodynamic 2026",label:"SeeMedX",type:"Portfolio"},
+  {query:"KareFusion AI multilingual healthcare voice agent 2026",label:"KareFusion AI",type:"Portfolio"},
+  {query:"InhibRx INBX OX40 DR5 oncology 2026",label:"INBX",type:"Public"},
+  {query:"Foghorn Therapeutics FHTX SMARCA2 Lilly 2026",label:"FHTX",type:"Public"},
+  {query:"Adagene ADAG muzastotug CTLA4 colorectal 2026",label:"ADAG",type:"Public"},
+  {query:"Nasus Pharma NSRX intranasal epinephrine NS002 2026",label:"NSRX",type:"Public"},
+  {query:"insurance claim denial AI revenue cycle management 2026",label:"RCM Industry",type:"Industry"},
+  {query:"salivary diagnostics biomarker FDA clearance 2026",label:"Salivary Dx",type:"Industry"},
+  {query:"triple negative breast cancer immunotherapy metastasis 2026",label:"TNBC",type:"Industry"},
+  {query:"NFL concussion CTE diagnosis sideline 2026",label:"CTE/Concussion",type:"Industry"},
+  {query:"neutrophil extracellular traps cancer tumor microenvironment 2026",label:"NETs Science",type:"Industry"},
+  {query:"lymphedema drug treatment clinical trial FDA 2026",label:"Lymphedema",type:"Industry"},
+  {query:"Waystar nThrive RCM AI denial management competitor 2026",label:"Waystar",type:"Competitor"},
+  {query:"Xenetic Biosciences DNase NETs cancer 2026",label:"Xenetic",type:"Competitor"},
+  {query:"Abbott SoToxa oral fluid drug test law enforcement 2026",label:"Abbott SoToxa",type:"Competitor"},
+  {query:"ARS Pharma Neffy intranasal epinephrine anaphylaxis 2026",label:"Neffy/ARS",type:"Competitor"},
 ];
 
 async function sGet(k,sh=false){try{const r=await window.storage.get(k,sh);return r?JSON.parse(r.value):null;}catch{return null;}}
@@ -132,6 +131,100 @@ function TickerBand({user}) {
             ))}
           </div>
         </div>
+      </div>
+    </div>
+  );
+}
+
+function NewsFeedSection({feeds, maxFeeds=8}) {
+  const [articles, setArticles] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const NAVY="#1B3A6B", GOLD="#C9922A";
+  const typeColor={Portfolio:"#166534",Industry:"#185FA5",Competitor:"#7F1D1D",Public:"#1e40af"};
+  const typeBg={Portfolio:"#EAF3DE",Industry:"#E6F1FB",Competitor:"#FCEBEB",Public:"#EBF1F8"};
+
+  useEffect(()=>{
+    let cancelled=false;
+    (async()=>{
+      try{
+        const results=[];
+        const toFetch=(feeds||NEWS_FEEDS).slice(0,maxFeeds);
+        for(const feed of toFetch){
+          try{
+            const res=await fetch("https://api.anthropic.com/v1/messages",{
+              method:"POST",
+              headers:{"Content-Type":"application/json"},
+              body:JSON.stringify({
+                model:"claude-sonnet-4-20250514",
+                max_tokens:500,
+                tools:[{type:"web_search_20250305",name:"web_search"}],
+                messages:[{role:"user",content:`Search for the single most recent and relevant news article or development (from 2025 or 2026) about: ${feed.query}. Reply ONLY with a JSON object in this exact format with no other text: {"headline":"exact headline here","source":"publication name","date":"Month DD YYYY","summary":"one sentence summary of why this matters"}`}]
+              })
+            });
+            const data=await res.json();
+            const textBlocks=(data.content||[]).filter(c=>c.type==="text").map(c=>c.text).join("").trim();
+            if(textBlocks){
+              try{
+                const clean=textBlocks.replace(/```json|```/g,"").trim();
+                const parsed=JSON.parse(clean);
+                if(parsed.headline&&parsed.headline.length>5){
+                  results.push({...parsed,label:feed.label,type:feed.type});
+                }
+              }catch(e){/* skip malformed */}
+            }
+          }catch(e){/* skip failed fetch */}
+        }
+        if(!cancelled){
+          if(results.length>0) setArticles(results);
+          else setError("No articles loaded");
+          setLoading(false);
+        }
+      }catch(e){
+        if(!cancelled){setError(e.message);setLoading(false);}
+      }
+    })();
+    return()=>{cancelled=true;};
+  },[]);
+
+  if(loading) return(
+    <div style={{background:"white",border:"1px solid #e5e2d9",borderRadius:10,padding:"20px 24px",marginBottom:16}}>
+      <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:12}}>
+        <div style={{width:8,height:8,borderRadius:"50%",background:GOLD,animation:"pulse 1.5s infinite"}}/>
+        <div style={{fontSize:10,color:GOLD,letterSpacing:"0.2em",fontFamily:"Georgia,serif",fontWeight:700}}>LIVE MARKET INTELLIGENCE — LOADING...</div>
+      </div>
+      {[1,2,3,4].map(i=>(
+        <div key={i} style={{height:60,background:"#f5f3ee",borderRadius:6,marginBottom:8,animation:"pulse 1.5s infinite"}}/>
+      ))}
+    </div>
+  );
+
+  if(error||articles.length===0) return(
+    <div style={{background:"white",border:"1px solid #e5e2d9",borderRadius:10,padding:"20px 24px",marginBottom:16}}>
+      <div style={{fontSize:10,color:GOLD,letterSpacing:"0.2em",fontFamily:"Georgia,serif",marginBottom:8}}>MARKET INTELLIGENCE</div>
+      <div style={{fontSize:12,color:"#bbb",fontStyle:"italic",fontFamily:"Georgia,serif"}}>News feed unavailable. Check API connectivity.</div>
+    </div>
+  );
+
+  return(
+    <div style={{background:"white",border:"1px solid #e5e2d9",borderRadius:10,padding:"20px 24px",marginBottom:16}}>
+      <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:16}}>
+        <div style={{width:8,height:8,borderRadius:"50%",background:"#22c55e"}}/>
+        <div style={{fontSize:10,color:GOLD,letterSpacing:"0.2em",fontFamily:"Georgia,serif",fontWeight:700}}>LIVE MARKET INTELLIGENCE — {articles.length} ARTICLES LOADED</div>
+        <div style={{fontSize:9,color:"#bbb",fontFamily:"Georgia,serif",marginLeft:"auto"}}>Updated {new Date().toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"})}</div>
+      </div>
+      <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(300px,1fr))",gap:10}}>
+        {articles.map((a,i)=>(
+          <div key={i} style={{background:"#fafaf8",borderRadius:8,padding:"14px 16px",border:"1px solid #f0ede6",display:"flex",flexDirection:"column",gap:6}}>
+            <div style={{display:"flex",alignItems:"center",gap:6,flexWrap:"wrap"}}>
+              <span style={{background:typeBg[a.type]||"#EBF1F8",color:typeColor[a.type]||NAVY,fontSize:9,fontWeight:700,padding:"2px 8px",borderRadius:3,fontFamily:"Georgia,serif",flexShrink:0}}>{a.label}</span>
+              <span style={{fontSize:9,background:"#f0ede6",color:"#888",padding:"2px 6px",borderRadius:3,fontFamily:"Georgia,serif",flexShrink:0}}>{a.type}</span>
+              <span style={{fontSize:9,color:"#bbb",fontFamily:"Georgia,serif",marginLeft:"auto",flexShrink:0}}>{a.date} · {a.source}</span>
+            </div>
+            <div style={{fontSize:12,fontWeight:600,color:NAVY,fontFamily:"Georgia,serif",lineHeight:1.4}}>{a.headline}</div>
+            {a.summary&&<div style={{fontSize:11,color:"#666",fontFamily:"Georgia,serif",lineHeight:1.4}}>{a.summary}</div>}
+          </div>
+        ))}
       </div>
     </div>
   );
@@ -221,10 +314,13 @@ export default function App(){
   const [docAcc,setDocAcc]=useState({});
   const [showWA,setShowWA]=useState(false);
   const [copied,setCopied]=useState(false);
+  const [adminTab, setAdminTab] = useState("overview");
+  const [memberFilter, setMemberFilter] = useState("");
+  const [docTimers, setDocTimers] = useState({});
 
   useEffect(()=>{(async()=>{const s=await sGet("asa:s");if(s){setU(s);setView(s.isAdmin?"admin":"room");}const e=await sGet("asa:e",true);if(e)setEv(e);setLd(false);})();},[]);
 
-  async function track(evt){const e={...evt,ts:new Date().toISOString()};const c=await sGet("asa:e",true)||[];const up=[...c,e];await sSet("asa:e",up,true);setEv(up);}
+  async function track(evt){const e={...evt,ts:Date.now()};const c=await sGet("asa:e",true)||[];const up=[...c,e];await sSet("asa:e",up,true);setEv(up);}
 
   async function handlePw(){if(pw===ADMIN_PW){setStep("name");setErr("");setPw("__a__");}else if(pw===PORTAL_PW){setStep("name");setErr("");}else setErr("Incorrect password. Contact Dr. Shah for access.");}
   async function handleName(){if(!nameV.trim()){setErr("Please enter your name.");return;}const ad=pw==="__a__";const uu={id:uid(),name:nameV.trim(),isAdmin:ad};setU(uu);await sSet("asa:s",uu);await track({userId:uu.id,userName:uu.name,type:"login"});setView(ad?"admin":"room");setErr("");}
@@ -232,6 +328,31 @@ export default function App(){
   async function handleDoc(i,n){setDocAcc(p=>({...p,[i]:true}));if(u&&sel)await track({userId:u.id,userName:u.name,type:"doc",dealId:sel.id,dealName:sel.name,docIdx:i,docName:n});if(sel.docUrls&&sel.docUrls[i]&&sel.docUrls[i]!=="#")window.open(sel.docUrls[i],"_blank");}
   async function logout(){await sSet("asa:s",null);setU(null);setView("login");setStep("password");setPw("");setName("");setSel(null);}
   function copyWA(){if(sel){navigator.clipboard?.writeText(makeWAPost(sel)).then(()=>{setCopied(true);setTimeout(()=>setCopied(false),2500);});}}
+
+  function handleDocOpen(deal, docIdx) {
+    const now = Date.now();
+    const key = `${deal.id}_${docIdx}`;
+    const evt = {
+      type:"doc",
+      ts: now,
+      userId: u?.id || "anon",
+      userName: u?.name || "Unknown",
+      dealId: deal.id,
+      dealName: deal.name,
+      docIdx,
+      docName: DOCS[docIdx]?.name || "",
+    };
+    track(evt);
+    setDocTimers(prev => ({...prev, [key]: now}));
+    window.open(deal.docUrls[docIdx], "_blank");
+  }
+
+  function getDocTimeSpent(dealId, docIdx) {
+    const key = `${dealId}_${docIdx}`;
+    if(!docTimers[key]) return null;
+    const elapsed = Math.round((Date.now() - docTimers[key]) / 1000);
+    return elapsed;
+  }
 
   if(ld)return<div style={{display:"flex",alignItems:"center",justifyContent:"center",height:"100vh",background:NAVY}}><div style={{color:GOLD,fontSize:18,fontFamily:"Georgia,serif"}}>Loading ASAngels...</div></div>;
 
@@ -317,6 +438,7 @@ export default function App(){
               </div>;
             })}
           </div>
+          <NewsFeedSection />
           <div style={{marginTop:32,marginBottom:8}}>
             <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:4}}>
               <div style={{fontSize:10,color:"#C9922A",letterSpacing:"0.2em",fontFamily:"Georgia,serif",fontWeight:700}}>PUBLIC MARKETS WATCH — VIA GABRIEL KRANTZ / LIFESCI ADVISORS</div>
@@ -468,71 +590,266 @@ export default function App(){
   }
 
   // ADMIN ANALYTICS
-  if(view==="admin"){
+  if(view==="admin"&&u?.isAdmin){
     const docEvts=ev.filter(e=>e.type==="doc");
-    const users=[...new Set(ev.map(e=>e.userName).filter(Boolean))];
-    function funnel(did){const de=docEvts.filter(e=>e.dealId===did);const ub={};de.forEach(e=>{if(!ub[e.docIdx])ub[e.docIdx]=new Set();ub[e.docIdx].add(e.userId);});return DOCS.map((_,i)=>(ub[i]||new Set()).size);}
+    const loginEvts=ev.filter(e=>e.type==="login");
+    const dealEvts=ev.filter(e=>e.type==="deal_view");
+    const users=[...new Set(ev.map(e=>e.userId).filter(Boolean))];
+    const userNames={};ev.forEach(e=>{if(e.userId&&e.userName)userNames[e.userId]=e.userName;});
+
+    function getMemberStats(userId){
+      const uev=ev.filter(e=>e.userId===userId);
+      const lastSeen=uev.map(e=>e.ts).sort().reverse()[0];
+      const dealsViewed=[...new Set(uev.filter(e=>e.type==="deal_view").map(e=>e.dealId))];
+      const docsOpened=uev.filter(e=>e.type==="doc");
+      const loginCount=uev.filter(e=>e.type==="login").length;
+      const dealProgress={};
+      docsOpened.forEach(e=>{if(!dealProgress[e.dealId])dealProgress[e.dealId]=new Set();dealProgress[e.dealId].add(e.docIdx);});
+      const deepestDeal=Object.entries(dealProgress).sort((a,b)=>b[1].size-a[1].size)[0];
+      const sessionDurations=[];
+      const loginTimes=uev.filter(e=>e.type==="login").map(e=>e.ts).sort();
+      loginTimes.forEach((lt,i)=>{
+        const nextLogin=loginTimes[i+1]||Date.now();
+        const sessionEvts=uev.filter(e=>e.ts>=lt&&e.ts<nextLogin);
+        if(sessionEvts.length>1){
+          const sessionEnd=Math.max(...sessionEvts.map(e=>e.ts));
+          sessionDurations.push(Math.round((sessionEnd-lt)/60000));
+        }
+      });
+      const avgSession=sessionDurations.length?Math.round(sessionDurations.reduce((a,b)=>a+b,0)/sessionDurations.length):0;
+      return{name:userNames[userId]||"Unknown",lastSeen,dealsViewed,docsOpened:docsOpened.length,loginCount,deepestDeal,avgSession,dealProgress};
+    }
+
+    function funnel(did){
+      const de=docEvts.filter(e=>e.dealId===did);
+      const ub={};
+      de.forEach(e=>{if(!ub[e.docIdx])ub[e.docIdx]=new Set();ub[e.docIdx].add(e.userId);});
+      return DOCS.map((_,i)=>(ub[i]||new Set()).size);
+    }
+
+    function getDocEngagement(dealId, docIdx){
+      const opens=docEvts.filter(e=>e.dealId===dealId&&e.docIdx===docIdx);
+      return{opens:opens.length,users:[...new Set(opens.map(e=>e.userName))].filter(Boolean)};
+    }
+
+    const totalTimeOnSite=ev.length>1?Math.round((Math.max(...ev.map(e=>e.ts))-Math.min(...ev.map(e=>e.ts)))/3600000*10)/10:0;
+
     return(
       <div style={{minHeight:"100vh",background:"#f8f7f4"}}>
+        {/* Header */}
         <div style={{background:NAVY,padding:"12px 28px",display:"flex",alignItems:"center",gap:12,position:"sticky",top:0,zIndex:10,boxShadow:"0 2px 12px rgba(0,0,0,0.2)"}}>
           <button onClick={()=>setView("room")} style={{background:"rgba(255,255,255,0.08)",color:"#8fa8c8",border:"1px solid rgba(255,255,255,0.15)",borderRadius:5,padding:"4px 12px",fontSize:10,cursor:"pointer",fontFamily:"Georgia,serif"}}>← Deal Room</button>
-          <div style={{fontSize:17,fontWeight:700,color:"white",fontFamily:"Georgia,serif"}}>Analytics Dashboard</div>
-          <div style={{fontSize:10,color:GOLD,fontFamily:"Georgia,serif"}}>Admin: {u?.name}</div>
+          <div style={{fontSize:17,fontWeight:700,color:"white",fontFamily:"Georgia,serif"}}>Admin Analytics</div>
           <div style={{flex:1}}/>
-          <button onClick={logout} style={{background:"rgba(255,255,255,0.07)",color:"#8fa8c8",border:"1px solid rgba(255,255,255,0.15)",borderRadius:5,padding:"4px 10px",fontSize:10,cursor:"pointer",fontFamily:"Georgia,serif"}}>Sign Out</button>
+          {["overview","members","documents","activity","funnel"].map(tab=>(
+            <button key={tab} onClick={()=>setAdminTab(tab)} style={{background:adminTab===tab?GOLD:"rgba(255,255,255,0.07)",color:adminTab===tab?"white":"#8fa8c8",border:"none",borderRadius:5,padding:"5px 12px",fontSize:10,cursor:"pointer",fontFamily:"Georgia,serif",fontWeight:adminTab===tab?700:400,textTransform:"capitalize"}}>{tab}</button>
+          ))}
+          <button onClick={logout} style={{background:"rgba(255,255,255,0.07)",color:"#8fa8c8",border:"1px solid rgba(255,255,255,0.15)",borderRadius:5,padding:"4px 10px",fontSize:10,cursor:"pointer",fontFamily:"Georgia,serif",marginLeft:8}}>Sign Out</button>
         </div>
-        <div style={{maxWidth:1080,margin:"0 auto",padding:"30px 20px"}}>
-          {/* Summary */}
-          <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:14,marginBottom:24}}>
-            {[["Members",users.length,"unique physician investors"],["Deal Views",ev.filter(e=>e.type==="deal_view").length,"total"],["Doc Opens",docEvts.length,"total accesses"],["Logins",ev.filter(e=>e.type==="login").length,"total"]].map(([l,v,s])=>(
-              <div key={l} style={{background:"white",border:"1px solid #e5e2d9",borderRadius:10,padding:"18px 22px"}}>
-                <div style={{fontSize:30,fontWeight:700,color:NAVY,fontFamily:"Georgia,serif"}}>{v}</div>
-                <div style={{fontSize:11,fontWeight:600,color:NAVY,fontFamily:"Georgia,serif",marginBottom:1}}>{l}</div>
-                <div style={{fontSize:10,color:"#999",fontFamily:"Georgia,serif"}}>{s}</div>
+
+        <div style={{maxWidth:1240,margin:"0 auto",padding:"28px 20px"}}>
+
+          {/* OVERVIEW TAB */}
+          {adminTab==="overview"&&<>
+            <div style={{display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:12,marginBottom:24}}>
+              {[["Members",users.length,"unique investors"],["Logins",loginEvts.length,"total sessions"],["Deal Views",dealEvts.length,"total"],["Doc Opens",docEvts.length,"total"],["Hours on Site",totalTimeOnSite,"cumulative"]].map(([l,v,s])=>(
+                <div key={l} style={{background:"white",border:"1px solid #e5e2d9",borderRadius:10,padding:"16px 20px"}}>
+                  <div style={{fontSize:28,fontWeight:700,color:NAVY,fontFamily:"Georgia,serif"}}>{v}</div>
+                  <div style={{fontSize:12,fontWeight:600,color:NAVY,fontFamily:"Georgia,serif"}}>{l}</div>
+                  <div style={{fontSize:10,color:"#999",fontFamily:"Georgia,serif"}}>{s}</div>
+                </div>
+              ))}
+            </div>
+
+            <div style={{background:"white",border:"1px solid #e5e2d9",borderRadius:10,padding:"20px 24px",marginBottom:16}}>
+              <div style={{fontSize:10,color:GOLD,letterSpacing:"0.2em",fontFamily:"Georgia,serif",marginBottom:14}}>DEAL ENGAGEMENT RANKING</div>
+              {[...DEALS].sort((a,b)=>docEvts.filter(e=>e.dealId===b.id).length-docEvts.filter(e=>e.dealId===a.id).length).map(d=>{
+                const views=dealEvts.filter(e=>e.dealId===d.id).length;
+                const opens=docEvts.filter(e=>e.dealId===d.id).length;
+                const uniq=[...new Set(ev.filter(e=>e.dealId===d.id).map(e=>e.userId))].length;
+                const maxOpens=Math.max(1,...DEALS.map(x=>docEvts.filter(e=>e.dealId===x.id).length));
+                if(!views&&!opens)return null;
+                return(
+                  <div key={d.id} style={{display:"flex",alignItems:"center",gap:12,padding:"10px 0",borderBottom:"1px solid #f5f3ee",flexWrap:"wrap"}}>
+                    <div style={{flex:1,minWidth:140,fontSize:13,fontWeight:600,color:NAVY,fontFamily:"Georgia,serif"}}>{d.name}</div>
+                    <div style={{display:"flex",gap:16,alignItems:"center"}}>
+                      <span style={{fontSize:11,color:"#888",fontFamily:"Georgia,serif"}}>{uniq} investors</span>
+                      <span style={{fontSize:11,color:"#888",fontFamily:"Georgia,serif"}}>{views} views</span>
+                      <span style={{fontSize:11,color:GOLD,fontWeight:700,fontFamily:"Georgia,serif"}}>{opens} doc opens</span>
+                    </div>
+                    <div style={{width:160,background:"#f0ede6",borderRadius:4,height:6}}>
+                      <div style={{width:`${(opens/maxOpens)*100}%`,background:GOLD,height:6,borderRadius:4,transition:"width 0.3s"}}/>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            <div style={{background:"white",border:"1px solid #e5e2d9",borderRadius:10,padding:"20px 24px"}}>
+              <div style={{fontSize:10,color:GOLD,letterSpacing:"0.2em",fontFamily:"Georgia,serif",marginBottom:14}}>RECENT ACTIVITY — LAST 20 EVENTS</div>
+              {[...ev].reverse().slice(0,20).map((e,i)=>{
+                const bg={doc:"#EBF1F8",login:"#EAF3DE",deal_view:"#FAEEDA"}[e.type]||"#f0ede6";
+                const tc={doc:NAVY,login:"#166534",deal_view:"#92400E"}[e.type]||"#555";
+                return(
+                  <div key={i} style={{display:"flex",alignItems:"center",gap:10,padding:"7px 0",borderBottom:"1px solid #fafaf8",flexWrap:"wrap"}}>
+                    <span style={{background:bg,color:tc,fontSize:9,fontWeight:700,padding:"2px 7px",borderRadius:3,fontFamily:"Georgia,serif",flexShrink:0}}>{e.type}</span>
+                    <span style={{fontSize:12,fontWeight:600,color:NAVY,fontFamily:"Georgia,serif",flexShrink:0}}>{e.userName||"—"}</span>
+                    {e.dealName&&<span style={{fontSize:11,color:"#666",fontFamily:"Georgia,serif"}}>{e.dealName}</span>}
+                    {e.docName&&<span style={{fontSize:11,color:GOLD,fontFamily:"Georgia,serif"}}>Doc {(e.docIdx||0)+1}: {e.docName}</span>}
+                    <span style={{fontSize:10,color:"#bbb",fontFamily:"Georgia,serif",marginLeft:"auto",flexShrink:0}}>{new Date(e.ts).toLocaleString()}</span>
+                  </div>
+                );
+              })}
+              {ev.length===0&&<div style={{fontSize:12,color:"#bbb",fontStyle:"italic",textAlign:"center",padding:24}}>No events yet.</div>}
+            </div>
+          </>}
+
+          {/* MEMBERS TAB */}
+          {adminTab==="members"&&<>
+            <div style={{background:"white",border:"1px solid #e5e2d9",borderRadius:10,padding:"20px 24px",marginBottom:16}}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}>
+                <div style={{fontSize:10,color:GOLD,letterSpacing:"0.2em",fontFamily:"Georgia,serif"}}>ALL MEMBERS — DETAILED PROFILES ({users.length} total)</div>
+                <input value={memberFilter} onChange={e=>setMemberFilter(e.target.value)} placeholder="Search by name..." style={{padding:"5px 10px",border:"1px solid #e5e2d9",borderRadius:6,fontSize:12,fontFamily:"Georgia,serif",color:NAVY,width:220,outline:"none"}}/>
               </div>
-            ))}
-          </div>
-
-          {/* Funnel Table */}
-          <div style={{background:"white",border:"1px solid #e5e2d9",borderRadius:12,padding:"22px 28px",marginBottom:20}}>
-            <div style={{fontSize:10,color:GOLD,letterSpacing:"0.2em",marginBottom:18,fontFamily:"Georgia,serif"}}>DOCUMENT FUNNEL — UNIQUE USERS PER DOCUMENT PER DEAL</div>
-            <div style={{overflowX:"auto"}}>
-              <table style={{width:"100%",borderCollapse:"collapse",fontSize:11,fontFamily:"Georgia,serif"}}>
-                <thead><tr style={{borderBottom:"2px solid #f0ede6"}}>
-                  <th style={{textAlign:"left",padding:"7px 10px",color:NAVY,fontWeight:700}}>Deal</th>
-                  {DOCS.map(d=><th key={d.n} style={{textAlign:"center",padding:"7px 6px",color:NAVY,fontWeight:700,fontSize:10}}>{d.n}. {d.name.split(" ")[0]}</th>)}
-                </tr></thead>
-                <tbody>{DEALS.map(d=>{const f=funnel(d.id);const mx=Math.max(1,...f);return<tr key={d.id} style={{borderBottom:"1px solid #f5f3ee"}}>
-                  <td style={{padding:"9px 10px",fontWeight:600,color:NAVY,fontSize:11}}>{d.name}</td>
-                  {f.map((n,i)=><td key={i} style={{textAlign:"center",padding:"9px 6px"}}><div style={{display:"inline-flex",alignItems:"center",justifyContent:"center",background:n>0?`rgba(27,58,107,${0.15+0.7*(n/mx)})`:"#f5f3ee",color:n>0?"white":"#ccc",borderRadius:4,width:30,height:30,fontSize:12,fontWeight:700}}>{n}</div></td>)}
-                </tr>;})}
-                </tbody>
-              </table>
+              {users.filter(uid=>!memberFilter||(userNames[uid]||"").toLowerCase().includes(memberFilter.toLowerCase())).map(uid=>{
+                const s=getMemberStats(uid);
+                return(
+                  <div key={uid} style={{padding:"18px 0",borderBottom:"1px solid #f5f3ee"}}>
+                    <div style={{display:"flex",alignItems:"flex-start",gap:20,flexWrap:"wrap"}}>
+                      <div style={{minWidth:180}}>
+                        <div style={{fontSize:15,fontWeight:700,color:NAVY,fontFamily:"Georgia,serif"}}>{s.name}</div>
+                        <div style={{fontSize:10,color:"#999",fontFamily:"Georgia,serif",marginTop:2}}>Last active: {s.lastSeen?new Date(s.lastSeen).toLocaleString():"Never"}</div>
+                      </div>
+                      <div style={{display:"flex",gap:20,flexWrap:"wrap"}}>
+                        {[["Logins",s.loginCount],["Deals Viewed",s.dealsViewed.length],["Docs Opened",s.docsOpened],["Avg Session",s.avgSession+"min"]].map(([l,v])=>(
+                          <div key={l}><div style={{fontSize:20,fontWeight:700,color:NAVY,fontFamily:"Georgia,serif"}}>{v}</div><div style={{fontSize:10,color:"#999",fontFamily:"Georgia,serif"}}>{l}</div></div>
+                        ))}
+                      </div>
+                      <div style={{flex:1,minWidth:240}}>
+                        <div style={{fontSize:10,color:"#999",fontFamily:"Georgia,serif",marginBottom:4}}>DEALS ACCESSED</div>
+                        <div style={{display:"flex",gap:4,flexWrap:"wrap"}}>
+                          {s.dealsViewed.map(did=>{
+                            const d=DEALS.find(x=>x.id===did);
+                            const depth=s.dealProgress[did]?.size||0;
+                            return d?<span key={did} style={{background:"#EBF1F8",color:NAVY,fontSize:9,padding:"2px 7px",borderRadius:3,fontFamily:"Georgia,serif",fontWeight:600}}>{d.name} ({depth}/6)</span>:null;
+                          })}
+                        </div>
+                        {s.deepestDeal&&<div style={{fontSize:10,color:GOLD,fontFamily:"Georgia,serif",marginTop:4,fontWeight:600}}>Deepest engagement: {DEALS.find(x=>x.id===s.deepestDeal[0])?.name} — {s.deepestDeal[1].size} of 6 docs opened</div>}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+              {users.length===0&&<div style={{fontSize:12,color:"#bbb",fontStyle:"italic",textAlign:"center",padding:24}}>No members have logged in yet.</div>}
             </div>
-          </div>
+          </>}
 
-          {/* Access Log */}
-          <div style={{background:"white",border:"1px solid #e5e2d9",borderRadius:12,padding:"22px 28px"}}>
-            <div style={{fontSize:10,color:GOLD,letterSpacing:"0.2em",marginBottom:14,fontFamily:"Georgia,serif"}}>ACCESS LOG (MOST RECENT FIRST)</div>
-            <div style={{maxHeight:380,overflowY:"auto"}}>
-              <table style={{width:"100%",borderCollapse:"collapse",fontSize:11,fontFamily:"Georgia,serif"}}>
-                <thead style={{position:"sticky",top:0,background:"white"}}><tr style={{borderBottom:"2px solid #f0ede6"}}>
-                  {["Time","Member","Event","Deal","Document"].map(h=><th key={h} style={{textAlign:"left",padding:"7px 10px",color:NAVY,fontWeight:700,fontSize:10}}>{h}</th>)}
-                </tr></thead>
-                <tbody>{[...ev].reverse().slice(0,150).map((e,i)=>(
-                  <tr key={i} style={{borderBottom:"1px solid #f8f7f4",background:i%2===0?"white":"#fafaf8"}}>
-                    <td style={{padding:"7px 10px",color:"#666",fontSize:10,whiteSpace:"nowrap"}}>{new Date(e.ts).toLocaleString()}</td>
-                    <td style={{padding:"7px 10px",fontWeight:600,color:NAVY}}>{e.userName||"—"}</td>
-                    <td style={{padding:"7px 10px"}}><span style={{background:e.type==="doc"?"#EBF1F8":e.type==="login"?"#EAF3DE":"#F1EFE8",color:NAVY,padding:"1px 5px",borderRadius:3,fontSize:9,fontWeight:600}}>{e.type}</span></td>
-                    <td style={{padding:"7px 10px",color:"#555"}}>{e.dealName||"—"}</td>
-                    <td style={{padding:"7px 10px",color:"#555"}}>{e.docName?`${(e.docIdx||0)+1}. ${e.docName}`:"—"}</td>
-                  </tr>
-                ))}
-                {ev.length===0&&<tr><td colSpan={5} style={{padding:24,textAlign:"center",color:"#bbb",fontStyle:"italic",fontFamily:"Georgia,serif"}}>No events yet. Logs appear here as members access documents.</td></tr>}
-                </tbody>
-              </table>
+          {/* DOCUMENTS TAB */}
+          {adminTab==="documents"&&<>
+            <div style={{background:"white",border:"1px solid #e5e2d9",borderRadius:10,padding:"20px 24px",marginBottom:16}}>
+              <div style={{fontSize:10,color:GOLD,letterSpacing:"0.2em",fontFamily:"Georgia,serif",marginBottom:18}}>DOCUMENT ENGAGEMENT — OPENS PER DOC PER DEAL</div>
+              {DEALS.map(d=>{
+                const anyOpens=docEvts.some(e=>e.dealId===d.id);
+                if(!anyOpens)return null;
+                return(
+                  <div key={d.id} style={{marginBottom:20}}>
+                    <div style={{fontSize:13,fontWeight:700,color:NAVY,fontFamily:"Georgia,serif",marginBottom:8,paddingBottom:4,borderBottom:"2px solid #f0ede6"}}>{d.name}</div>
+                    <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
+                      {DOCS.map((doc,i)=>{
+                        const eng=getDocEngagement(d.id,i);
+                        const hasLink=d.docUrls&&d.docUrls[i]&&d.docUrls[i]!=="#";
+                        return(
+                          <div key={i} style={{background:eng.opens>0?"#EBF1F8":"#f8f7f4",border:`1px solid ${eng.opens>0?"#c5d8f0":"#e5e2d9"}`,borderRadius:7,padding:"10px 14px",minWidth:150}}>
+                            <div style={{fontSize:10,fontWeight:700,color:NAVY,fontFamily:"Georgia,serif"}}>{i+1}. {doc.name}</div>
+                            <div style={{fontSize:9,color:"#888",fontFamily:"Georgia,serif",marginBottom:4}}>{doc.sub}</div>
+                            <div style={{fontSize:18,fontWeight:700,color:eng.opens>0?NAVY:"#ccc",fontFamily:"Georgia,serif"}}>{eng.opens}</div>
+                            <div style={{fontSize:9,color:"#999",fontFamily:"Georgia,serif"}}>opens</div>
+                            {eng.users.length>0&&<div style={{fontSize:9,color:GOLD,fontFamily:"Georgia,serif",marginTop:3}}>{eng.users.slice(0,3).join(", ")}{eng.users.length>3?` +${eng.users.length-3}`:""}</div>}
+                            {!hasLink&&<div style={{fontSize:8,color:"#e5a000",fontFamily:"Georgia,serif",marginTop:2}}>⚠ Link pending</div>}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })}
+              {!docEvts.length&&<div style={{fontSize:12,color:"#bbb",fontStyle:"italic",textAlign:"center",padding:24}}>No document opens recorded yet.</div>}
             </div>
-          </div>
+          </>}
+
+          {/* ACTIVITY TAB */}
+          {adminTab==="activity"&&<>
+            <div style={{background:"white",border:"1px solid #e5e2d9",borderRadius:10,padding:"20px 24px"}}>
+              <div style={{fontSize:10,color:GOLD,letterSpacing:"0.2em",fontFamily:"Georgia,serif",marginBottom:14}}>FULL ACCESS LOG — CHRONOLOGICAL (MOST RECENT FIRST)</div>
+              <div style={{maxHeight:600,overflowY:"auto"}}>
+                <table style={{width:"100%",borderCollapse:"collapse",fontSize:11,fontFamily:"Georgia,serif"}}>
+                  <thead style={{position:"sticky",top:0,background:"white",zIndex:1}}>
+                    <tr style={{borderBottom:"2px solid #f0ede6"}}>
+                      {["Timestamp","Member","Event","Deal","Document","Session ID"].map(h=>(
+                        <th key={h} style={{textAlign:"left",padding:"7px 10px",color:NAVY,fontWeight:700,fontSize:10,whiteSpace:"nowrap"}}>{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {[...ev].reverse().slice(0,500).map((e,i)=>{
+                      const bg={doc:"#EBF1F8",login:"#EAF3DE",deal_view:"#FAEEDA"}[e.type]||"#f0ede6";
+                      const tc={doc:NAVY,login:"#166534",deal_view:"#92400E"}[e.type]||"#555";
+                      return(
+                        <tr key={i} style={{borderBottom:"1px solid #fafaf8",background:i%2===0?"white":"#fafaf8"}}>
+                          <td style={{padding:"6px 10px",color:"#666",fontSize:10,whiteSpace:"nowrap"}}>{new Date(e.ts).toLocaleString()}</td>
+                          <td style={{padding:"6px 10px",fontWeight:600,color:NAVY}}>{e.userName||"—"}</td>
+                          <td style={{padding:"6px 10px"}}><span style={{background:bg,color:tc,padding:"1px 6px",borderRadius:3,fontSize:9,fontWeight:700}}>{e.type}</span></td>
+                          <td style={{padding:"6px 10px",color:"#555"}}>{e.dealName||"—"}</td>
+                          <td style={{padding:"6px 10px",color:GOLD,fontWeight:600}}>{e.docName?`${(e.docIdx||0)+1}. ${e.docName}`:"—"}</td>
+                          <td style={{padding:"6px 10px",color:"#bbb",fontSize:9}}>{(e.userId||"").substring(0,12)}</td>
+                        </tr>
+                      );
+                    })}
+                    {ev.length===0&&<tr><td colSpan={6} style={{padding:24,textAlign:"center",color:"#bbb",fontStyle:"italic"}}>No events logged yet.</td></tr>}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </>}
+
+          {/* FUNNEL TAB */}
+          {adminTab==="funnel"&&<>
+            <div style={{background:"white",border:"1px solid #e5e2d9",borderRadius:10,padding:"20px 24px",marginBottom:16}}>
+              <div style={{fontSize:10,color:GOLD,letterSpacing:"0.2em",fontFamily:"Georgia,serif",marginBottom:18}}>DOCUMENT FUNNEL — UNIQUE INVESTORS PER DOCUMENT</div>
+              <div style={{overflowX:"auto"}}>
+                <table style={{width:"100%",borderCollapse:"collapse",fontSize:11,fontFamily:"Georgia,serif",minWidth:700}}>
+                  <thead>
+                    <tr style={{borderBottom:"2px solid #f0ede6"}}>
+                      <th style={{textAlign:"left",padding:"8px 10px",color:NAVY,fontWeight:700}}>Deal</th>
+                      {DOCS.map(d=><th key={d.n} style={{textAlign:"center",padding:"8px 8px",color:NAVY,fontWeight:700,fontSize:10}}>{d.n}. {d.name.split(" ")[0]}</th>)}
+                      <th style={{textAlign:"center",padding:"8px 8px",color:NAVY,fontWeight:700,fontSize:10}}>Full Read %</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {DEALS.map(d=>{
+                      const f=funnel(d.id);
+                      const mx=Math.max(1,...f);
+                      const fullRead=f[5]>0&&f[0]>0?Math.round((f[5]/f[0])*100):0;
+                      return(
+                        <tr key={d.id} style={{borderBottom:"1px solid #f5f3ee"}}>
+                          <td style={{padding:"10px 10px",fontWeight:600,color:NAVY,fontSize:12}}>{d.name}</td>
+                          {f.map((n,i)=>(
+                            <td key={i} style={{textAlign:"center",padding:"10px 6px"}}>
+                              <div style={{display:"inline-flex",alignItems:"center",justifyContent:"center",background:n>0?`rgba(27,58,107,${0.15+0.7*(n/mx)})`:"#f5f3ee",color:n>0?"white":"#ccc",borderRadius:5,width:34,height:34,fontSize:13,fontWeight:700}}>{n}</div>
+                            </td>
+                          ))}
+                          <td style={{textAlign:"center",padding:"10px 8px"}}>
+                            <span style={{background:fullRead>50?"#EAF3DE":fullRead>20?"#FAEEDA":"#f5f3ee",color:fullRead>50?"#166534":fullRead>20?"#92400E":"#999",fontSize:11,fontWeight:700,padding:"3px 10px",borderRadius:5}}>{fullRead}%</span>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </>}
+
         </div>
       </div>
     );
