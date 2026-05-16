@@ -29,31 +29,6 @@ const PUBLIC_DEALS = [
   {id:"nsrx",ticker:"NSRX",name:"Nasus Pharma",exchange:"NASDAQ",tagline:"Needle-Free Intranasal Epinephrine Powder (NS002) — Faster Than EpiPen, 91% at Therapeutic Levels in 5 Minutes",stage:"Meeting Scheduled — Week of May 12",metWith:"Dan Teleman (CEO) and Eyal Rubin (EVP/CFO) scheduled via Gabriel Krantz · LifeSci Advisors",marketCap:"~$23M",cash:"~$15M post recent placement",analysts:"Limited coverage",keyAsset:"NS002 intranasal epinephrine powder: Phase 2 complete (50 subjects, Mar 16, 2026) — 91% reached therapeutic levels in 5 min vs EpiPen. Faster PK than both EpiPen and Neffy. Nasax proprietary engineered spherical particle delivery platform. IND Q3 2026. Pivotal trial Q4 2026. NDA mid-2027. Platform applicable beyond epinephrine.",catalysts:["IND submission: Q3 2026","Pivotal trial start: Q4 2026","Pediatric study start: Q4 2026","Pivotal trial readout: Q1 2027","NDA submission: mid-2027","Platform expansion to additional indications"],vital:{V:{score:"Developing",summary:"EpiPen market ~$1B+ US annually. 40% discount to ARS Pharma's Neffy likely required for formulary adoption. Phase 2 data positive but pivotal trial needed. At $23M market cap vs Neffy's $1B valuation, valuation gap is the thesis."},I:{score:"Strong",summary:"Anaphylaxis is time-critical — 91% at therapeutic levels in 5 minutes could save lives vs EpiPen delays. Needle-free removes administration barrier for needle-phobic patients and children. 40% drop on positive Phase 2 data creates asymmetric entry."},T:{score:"Developing",summary:"Phase 2 data: positive (Mar 16, 2026) but stock dropped 40% same day — pre-market run-up reversal plus 5.39M-share resale registration overhang (~46% of float). $15M raise completed. Management believes sufficient runway to NDA."},A:{score:"Developing",summary:"Intranasal delivery — no injection training required. Schools, parents, first responders are target users. Neffy (ARS Pharma) already in market validates category. Formulary competition vs approved Neffy is the key adoption hurdle."},L:{score:"Weak",summary:"Neffy (ARS Pharma) is already FDA-approved, partnered with ALK ex-US ($145M upfront), generating $84M TTM revenue. Nasus is 3+ years behind. Pivotal trial head-to-head vs EpiPen only — no direct Neffy comparison data planned. Fast-follower in an occupied space, not a category creator."}}},
 ];
 
-const NEWS_FEEDS = [
-  {query:"Red Sky Health AI denial management insurance 2026",label:"Red Sky Health",type:"Portfolio"},
-  {query:"Youlify medical billing AI automation 2026",label:"Youlify",type:"Portfolio"},
-  {query:"Adipothera lymphedema PPARgamma topical 2026",label:"Adipothera",type:"Portfolio"},
-  {query:"Calaris Diagnostics salivary liver fibrosis SALF 2026",label:"Calaris Dx",type:"Portfolio"},
-  {query:"Extrinsic Immunity NETrolyze TNBC neutrophil 2026",label:"EIT",type:"Portfolio"},
-  {query:"Epic Airway Systems 510k airway intubation EMS 2026",label:"Epic Airway",type:"Portfolio"},
-  {query:"OraTek saliva concussion TBI biomarker NFL 2026",label:"OraTek",type:"Portfolio"},
-  {query:"SeeMedX heart failure bioimpedance hemodynamic 2026",label:"SeeMedX",type:"Portfolio"},
-  {query:"KareFusion AI multilingual healthcare voice agent 2026",label:"KareFusion AI",type:"Portfolio"},
-  {query:"InhibRx INBX OX40 DR5 oncology 2026",label:"INBX",type:"Public"},
-  {query:"Foghorn Therapeutics FHTX SMARCA2 Lilly 2026",label:"FHTX",type:"Public"},
-  {query:"Adagene ADAG muzastotug CTLA4 colorectal 2026",label:"ADAG",type:"Public"},
-  {query:"Nasus Pharma NSRX intranasal epinephrine NS002 2026",label:"NSRX",type:"Public"},
-  {query:"insurance claim denial AI revenue cycle management 2026",label:"RCM Industry",type:"Industry"},
-  {query:"salivary diagnostics biomarker FDA clearance 2026",label:"Salivary Dx",type:"Industry"},
-  {query:"triple negative breast cancer immunotherapy metastasis 2026",label:"TNBC",type:"Industry"},
-  {query:"NFL concussion CTE diagnosis sideline 2026",label:"CTE/Concussion",type:"Industry"},
-  {query:"neutrophil extracellular traps cancer tumor microenvironment 2026",label:"NETs Science",type:"Industry"},
-  {query:"lymphedema drug treatment clinical trial FDA 2026",label:"Lymphedema",type:"Industry"},
-  {query:"Waystar nThrive RCM AI denial management competitor 2026",label:"Waystar",type:"Competitor"},
-  {query:"Xenetic Biosciences DNase NETs cancer 2026",label:"Xenetic",type:"Competitor"},
-  {query:"Abbott SoToxa oral fluid drug test law enforcement 2026",label:"Abbott SoToxa",type:"Competitor"},
-  {query:"ARS Pharma Neffy intranasal epinephrine anaphylaxis 2026",label:"Neffy/ARS",type:"Competitor"},
-];
 
 async function sGet(k,sh=false){try{const r=await window.storage.get(k,sh);return r?JSON.parse(r.value):null;}catch{return null;}}
 async function sSet(k,v,sh=false){try{await window.storage.set(k,JSON.stringify(v),sh);}catch{}}
@@ -77,20 +52,11 @@ function TickerBand({user}) {
   useEffect(()=>{
     async function fetchNews(){
       try {
-        const results=[];
-        for(const feed of NEWS_FEEDS.slice(0,6)){
-          const res=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:400,messages:[{role:"user",content:`Search for the 2 most recent news headlines (2025-2026) about: "${feed.query}". Return ONLY a JSON array like: [{"headline":"...","source":"...","date":"..."}]. No other text.`}],tools:[{type:"web_search_20250305",name:"web_search"}]})});
-          const data=await res.json();
-          const text=data.content?.filter(c=>c.type==="text").map(c=>c.text).join("");
-          try{
-            const clean=text.replace(/```json|```/g,"").trim();
-            const parsed=JSON.parse(clean);
-            parsed.forEach(item=>results.push({...item,label:feed.label,type:feed.type}));
-          }catch{}
-        }
-        if(results.length>0)setItems(results);
-      }catch(e){console.error(e);}
-      finally{setLoading(false);}
+        const res = await fetch("/api/news");
+        const data = await res.json();
+        if (data.articles && data.articles.length) setItems(data.articles);
+      } catch(e) { console.error(e); }
+      finally { setLoading(false); }
     }
     fetchNews();
   },[]);
@@ -145,46 +111,17 @@ function NewsFeedSection({feeds, maxFeeds=8}) {
   const typeBg={Portfolio:"#EAF3DE",Industry:"#E6F1FB",Competitor:"#FCEBEB",Public:"#EBF1F8"};
 
   useEffect(()=>{
-    let cancelled=false;
-    (async()=>{
-      try{
-        const results=[];
-        const toFetch=(feeds||NEWS_FEEDS).slice(0,maxFeeds);
-        for(const feed of toFetch){
-          try{
-            const res=await fetch("https://api.anthropic.com/v1/messages",{
-              method:"POST",
-              headers:{"Content-Type":"application/json"},
-              body:JSON.stringify({
-                model:"claude-sonnet-4-20250514",
-                max_tokens:500,
-                tools:[{type:"web_search_20250305",name:"web_search"}],
-                messages:[{role:"user",content:`Search for the single most recent and relevant news article or development (from 2025 or 2026) about: ${feed.query}. Reply ONLY with a JSON object in this exact format with no other text: {"headline":"exact headline here","source":"publication name","date":"Month DD YYYY","summary":"one sentence summary of why this matters"}`}]
-              })
-            });
-            const data=await res.json();
-            const textBlocks=(data.content||[]).filter(c=>c.type==="text").map(c=>c.text).join("").trim();
-            if(textBlocks){
-              try{
-                const clean=textBlocks.replace(/```json|```/g,"").trim();
-                const parsed=JSON.parse(clean);
-                if(parsed.headline&&parsed.headline.length>5){
-                  results.push({...parsed,label:feed.label,type:feed.type});
-                }
-              }catch(e){/* skip malformed */}
-            }
-          }catch(e){/* skip failed fetch */}
+    fetch("/api/news")
+      .then(r => r.json())
+      .then(data => {
+        if (data.articles && data.articles.length) {
+          setArticles(data.articles);
+        } else {
+          setError(data.error || "No articles loaded");
         }
-        if(!cancelled){
-          if(results.length>0) setArticles(results);
-          else setError("No articles loaded");
-          setLoading(false);
-        }
-      }catch(e){
-        if(!cancelled){setError(e.message);setLoading(false);}
-      }
-    })();
-    return()=>{cancelled=true;};
+        setLoading(false);
+      })
+      .catch(e => { setError(e.message); setLoading(false); });
   },[]);
 
   if(loading) return(
