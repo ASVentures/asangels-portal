@@ -104,7 +104,7 @@ app.get('/api/news', rateLimiter, (req, res) => {
 
 // Serve built client for all other routes (SPA fallback)
 app.use(express.static(join(__dirname, 'dist')));
-app.get('*', (_req, res) => {
+app.get(/.*/, (_req, res) => {
   res.sendFile(join(__dirname, 'dist', 'index.html'));
 });
 
