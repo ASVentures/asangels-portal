@@ -1,15 +1,38 @@
 import { useState, useEffect, useRef } from "react";
 
-const PORTAL_PW = "ASAngels2026", ADMIN_PW = "AdminASA2026";
-const NAVY = "#1B3A6B", GOLD = "#C9922A";
+const PORTAL_PW = "VigilanceCP2026", ADMIN_PW = "AdminVCP2026";
+const NAVY = "#0F1F3D", GOLD = "#B8935D";
+const NAVY_DEEP = "#091428", NAVY_LIGHT = "#1F2F4D";
+const GOLD_LIGHT = "#C9A47A", GOLD_PALE = "#E8DCC4";
+const CREAM = "#FAF8F3", CREAM_DEEP = "#F5F1E8", PAPER = "#FFFFFF";
+const TEXT = "#1F2937", TEXT_LIGHT = "#6B7280", TEXT_MUTED = "#9CA3AF";
+const BORDER = "#E5E0D5", BORDER_LIGHT = "#EFEAE0";
+const SERIF = '"EB Garamond", Georgia, serif';
+const SANS = '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
 
-const VM = { "Strong":{color:"#166534",bg:"#EAF3DE",label:"STRONG ✅"}, "Developing":{color:"#92400E",bg:"#FAEEDA",label:"DEVELOPING 🔄"}, "Unknown":{color:"#5F5E5A",bg:"#F1EFE8",label:"UNKNOWN ❓"}, "Very Weak":{color:"#7F1D1D",bg:"#FCEBEB",label:"VERY WEAK ⚠️"}, "Pre-clinical":{color:"#7F1D1D",bg:"#FCEBEB",label:"PRE-CLINICAL ⚠️"}, "Conditional":{color:"#92400E",bg:"#FAEEDA",label:"CONDITIONAL 🔄"} };
-const SM = { "Active Diligence — High Interest":{color:"#166534",bg:"#EAF3DE",dot:"🟢"}, "Active Diligence":{color:"#185FA5",bg:"#E6F1FB",dot:"🔵"}, "Discovery Stage — Gathering Information":{color:"#92400E",bg:"#FAEEDA",dot:"🟡"}, "Discovery Stage — High Skepticism":{color:"#7F1D1D",bg:"#FCEBEB",dot:"🔴"}, "Watch List — Too Early":{color:"#5F5E5A",bg:"#F1EFE8",dot:"⚫"} };
+// VITAL score badges — palette tints only (no bright greens/reds)
+const VM = {
+  "Strong":       {color:CREAM,      bg:NAVY,       border:NAVY,       label:"STRONG"},
+  "Very Strong":  {color:CREAM,      bg:NAVY,       border:NAVY,       label:"VERY STRONG"},
+  "Developing":   {color:NAVY,       bg:GOLD_PALE,  border:GOLD,       label:"DEVELOPING"},
+  "Conditional":  {color:NAVY,       bg:GOLD_PALE,  border:GOLD,       label:"CONDITIONAL"},
+  "Unknown":      {color:TEXT_LIGHT, bg:CREAM_DEEP, border:BORDER,     label:"UNKNOWN"},
+  "Weak":         {color:"#7A4E2E",  bg:"#F5E8DC",  border:"#D4B89D",  label:"WEAK"},
+  "Very Weak":    {color:"#7A4E2E",  bg:"#F5E8DC",  border:"#D4B89D",  label:"VERY WEAK"},
+  "Pre-clinical": {color:"#7A4E2E",  bg:"#F5E8DC",  border:"#D4B89D",  label:"PRE-CLINICAL"},
+};
+const SM = {
+  "Active Diligence — High Interest":          {color:CREAM,      bg:NAVY,       dot:"●"},
+  "Active Diligence":                          {color:NAVY,       bg:GOLD_PALE,  dot:"●"},
+  "Discovery Stage — Gathering Information":   {color:NAVY,       bg:CREAM_DEEP, dot:"●"},
+  "Discovery Stage — High Skepticism":         {color:"#7A4E2E",  bg:"#F5E8DC",  dot:"●"},
+  "Watch List — Too Early":                    {color:TEXT_LIGHT, bg:BORDER_LIGHT, dot:"●"},
+};
 const DOCS = [{n:1,name:"Quick Hit",sub:"60-second summary"},{n:2,name:"Deal Email",sub:"LP announcement"},{n:3,name:"One-Pager",sub:"Full investment thesis"},{n:4,name:"Short GP Memo",sub:"Internal GP brief"},{n:5,name:"Eisenhower Memo",sub:"Full diligence report"},{n:6,name:"Diligence Call Agenda",sub:"Live call structure"}];
 
 const DEALS = [
   {id:"redskyhealth",name:"Red Sky Health",tagline:"AI-Powered Insurance Denial Remediation — Performance-Based",stage:"Active Diligence — High Interest",founder:"Dean Margolis, CEO — Columbia / Harvard MS CS / Harvard MBA",location:"Remote (Founded 2022)",raised:"$7.81M raised · 34 employees",round:"Current round TBD — likely Series A",tam:"$4.2B",tamNote:"US denial management market · $262B in denied claims annually · 10%+ annual growth",projections:"$25–40M ARR potential at 0.1% recovery volume capture",competitors:[{name:"Waystar",note:"Largest RCM vendor, absorbed Olive AI"},{name:"nThrive",note:"Established denial management incumbent"},{name:"Experian Health",note:"Payer intelligence and prior auth tools"}],vital:{V:{score:"Strong",summary:"Clients only pay when money is actually recovered — self-qualifying mechanism."},I:{score:"Developing",summary:"Reduces billing staff burden; frees clinical staff for patient-facing work."},T:{score:"Developing",summary:"OaaS pivot March 2026. Key question: demand-driven or SaaS stall?"},A:{score:"Strong",summary:"OaaS eliminates upfront cost barrier — standard API integration."},L:{score:"Developing",summary:"Payer-specific AI training data creates switching costs over time."}},docUrls:["https://www.dropbox.com/scl/fi/kkbron44vph02tu739ljn/ASAngels_REDSKYHEALTH_1_QuickHit.docx?rlkey=fo1v8nzqsmwc6lra6dndzex7u&dl=1","https://www.dropbox.com/scl/fi/n307rhrhusn2mgc8umzoz/ASAngels_REDSKYHEALTH_2_DealEmail.docx?rlkey=bcwch15jm250vtjzw5ifn44zm&dl=1","https://www.dropbox.com/scl/fi/xjuojma90ddyb9s6jx2lt/ASAngels_REDSKYHEALTH_3_OnePager.docx?rlkey=1y326knat5of2i065xtadffww&dl=1","https://www.dropbox.com/scl/fi/waofp2iahwp4b4882rxy3/ASAngels_REDSKYHEALTH_4_ShortMemo.docx?rlkey=jfrnenl4vqo36glkl98i5cqwk&dl=1","https://www.dropbox.com/scl/fi/w6vumkf898bccy26uchy5/ASAngels_REDSKYHEALTH_5_EisenhowerMemo.docx?rlkey=2xfo2dg2k1abdcrhn6g6zyggn&dl=1","https://www.dropbox.com/scl/fi/emknew603ds7eyg8az8v9/ASAngels_REDSKYHEALTH_6_DiligenceCallAgenda..docx?rlkey=i0tpghoheu3r9tha8ungdwjrc&st=nbibtjqo&dl=1"],pitchDeck:{name:"Investor Deck",sub:"Investor Deck (from company) — May 2026",url:"https://www.dropbox.com/scl/fi/omt4q3rvtjxcssn0o5phn/Red-Sky-Health-Investor-Deck-May-2026.pdf?rlkey=6flslcxjetvesklq08thldos3&dl=1"}},
-  {id:"youlify",name:"Youlify",tagline:"End-to-End AI That Replaces Your Entire Medical Billing Department",stage:"Active Diligence — High Interest",founder:"Dr. Bo Gu MD (CEO, cardiac surgeon) · Sally Liang (COO) · Howard Peng (CTO, NLP PhD)",location:"San Francisco, CA (Founded 2023)",raised:"$4.3M seed · Bonfire · Illia Polosukhin · Oracle Chief AI Scientist",round:"Likely Series A ($15–25M) · ASAngels $500K–$1M",tam:"$15B",tamNote:"US medical billing industry. AI-augmented RCM market projected $6.2B by 2028.",projections:"$100M+ ARR at 1% of US physician practices at $50K/yr",competitors:[{name:"Waystar / Olive AI",note:"Largest incumbent but not physician-founded"},{name:"Athenahealth RCM",note:"Integrated EHR + billing — legacy stack"},{name:"Availity",note:"Connectivity platform, not AI replacement"}],vital:{V:{score:"Strong",summary:"Full RCM replacement: staff cost + recovery + payment cycle improvements compound."},I:{score:"Strong",summary:"Physician time reclaimed from admin burden. Payer surveillance agent prevents denials upstream."},T:{score:"Developing",summary:"Illia Polosukhin (Attention Is All You Need co-author) invested. ARR undisclosed."},A:{score:"Developing",summary:"Full billing replacement requires health system leadership buy-in and EHR integration."},L:{score:"Developing",summary:"Physician founder moat. NLP PhD CTO. Payer rule dataset builds switching costs."}}},
+  {id:"youlify",name:"Youlify",tagline:"End-to-End AI That Replaces Your Entire Medical Billing Department",stage:"Active Diligence — High Interest",founder:"Dr. Bo Gu MD (CEO, cardiac surgeon) · Sally Liang (COO) · Howard Peng (CTO, NLP PhD)",location:"San Francisco, CA (Founded 2023)",raised:"$4.3M seed · Bonfire · Illia Polosukhin · Oracle Chief AI Scientist",round:"Likely Series A ($15–25M) · Vigilance Capital Partners $500K–$1M",tam:"$15B",tamNote:"US medical billing industry. AI-augmented RCM market projected $6.2B by 2028.",projections:"$100M+ ARR at 1% of US physician practices at $50K/yr",competitors:[{name:"Waystar / Olive AI",note:"Largest incumbent but not physician-founded"},{name:"Athenahealth RCM",note:"Integrated EHR + billing — legacy stack"},{name:"Availity",note:"Connectivity platform, not AI replacement"}],vital:{V:{score:"Strong",summary:"Full RCM replacement: staff cost + recovery + payment cycle improvements compound."},I:{score:"Strong",summary:"Physician time reclaimed from admin burden. Payer surveillance agent prevents denials upstream."},T:{score:"Developing",summary:"Illia Polosukhin (Attention Is All You Need co-author) invested. ARR undisclosed."},A:{score:"Developing",summary:"Full billing replacement requires health system leadership buy-in and EHR integration."},L:{score:"Developing",summary:"Physician founder moat. NLP PhD CTO. Payer rule dataset builds switching costs."}}},
   {id:"adipothera",name:"Adipothera",tagline:"Novel Topical PPARγ Therapy for Cancer-Related Lymphedema",stage:"Active Diligence",founder:"Dr. Shailesh Agarwal MD — Harvard / Brigham & Women's Hospital",location:"Boston, MA",raised:"NIH-funded 2023–2028 (R01 equivalent)",round:"$2–5M to fund topical formulation dev + pre-IND",tam:"$1.2B",tamNote:"Global lymphedema treatment market. US pharmacological TAM if approved: $3–5B.",projections:"200K+ new US cases/yr · No approved drug anywhere in the world",competitors:[{name:"Compression garments / PT",note:"Palliative only — $3–6K/yr, zero disease modification"},{name:"Lymphovenous bypass surgery",note:"Not scalable, not widely available"},{name:"No approved pharmacological competitor",note:"White space — no FDA-approved drug for lymphedema exists"}],vital:{V:{score:"Developing",summary:"No health system cost data yet — pending clinical data to confirm V."},I:{score:"Strong",summary:"JCI Insight 2023 published data shows PPARγ reversal of fibroadipose deposits. World-class co-authors."},T:{score:"Pre-clinical",summary:"NIH-funded validates scientific merit. No IND filed, no clinical trial started."},A:{score:"Developing",summary:"Topical drug = prescribed by oncologist, used at home — minimal workflow disruption."},L:{score:"Developing",summary:"Co-authors Mehrara (MSKCC) and Greene are world's leading lymphedema researchers."}},docUrls:["https://www.dropbox.com/scl/fi/3ylu5msh9xfbewey36tyi/ASAngels_ADIPOTHERA_1_QuickHit.docx?rlkey=qd924v6z96oykb4eg5jf7jt69&st=6kj5xmx9&dl=1","https://www.dropbox.com/scl/fi/5qriyxpp3rx8icemv7es7/ASAngels_ADIPOTHERA_2_DealEmail.docx?rlkey=c8t797lnmpc27e65pbd62qbcl&st=msgpe2c5&dl=1","https://www.dropbox.com/scl/fi/1j8fw5ns5o5ie3rfucwtl/ASAngels_ADIPOTHERA_3_OnePager.docx?rlkey=rpem1l4gn3mxc9zluety5fm6g&st=173h3biq&dl=1","https://www.dropbox.com/scl/fi/5fgkok9y8ycymwidm4l9b/ASAngels_ADIPOTHERA_4_ShortMemo.docx?rlkey=zv9lfizpdlef65hcmxrc9neuh&st=5o2gyg9s&dl=1","https://www.dropbox.com/scl/fi/etyvn8wt8srajken303ey/ASAngels_ADIPOTHERA_5_EisenhowerMemo.docx?rlkey=l41ll8rdvcxnktozv6jajdx2z&st=1vn8xkd0&dl=1","https://www.dropbox.com/scl/fi/yzcskgsc6lpmn5ajfhhgp/ASAngels_ADIPOTHERA_6_DiligenceCallAgenda.docx?rlkey=b5tt8in6l6thl7famgg1e5orz&st=pda2hzcw&dl=1"]},
   {id:"ami",name:"AMI Healthcare — Saudi ASC",tagline:"Hybrid Ambulatory Surgery Center + Diabetes Clinic, North Riyadh",stage:"Active Diligence",founder:"Joachim Kriegel (CEO) & Jennifer Kriegel (Director BD) — AMI Healthcare Group",location:"Westborough MA (HQ) · North Riyadh, KSA",raised:"No institutional funding disclosed",round:"~$9M investor equity (30% of $30M build) · 70% via Ex-Im Bank",tam:"$69B",tamNote:"Saudi Vision 2030 health allocation. Private sector now 47% of Riyadh inpatient visits.",projections:"49.9% of Riyadh hospitalized patients have diabetes — direct clinical anchor",competitors:[{name:"Burjeel Holdings (Burjeel One)",note:"Two day surgery centers opening in Riyadh 2025 — direct ASC competitor"},{name:"Dr. Sulaiman Al Habib (HMG)",note:"$449M IPO Dec 2024 — most aggressive private group"},{name:"Saudi German Hospital Riyadh",note:"Central Riyadh — geographic complement to north Riyadh positioning"}],vital:{V:{score:"Unknown",summary:"No unit economics provided. Payer mix, CCHI reimbursement, per-case margin all TBD."},I:{score:"Developing",summary:"Diabetes + CKD surgical patient population is clinically validated."},T:{score:"Developing",summary:"MOU with GAD International. Building identified. Investor interest contingent on company formation."},A:{score:"Developing",summary:"Conversion only — no new foundation. 12-month revenue timeline claimed."},L:{score:"Developing",summary:"30-year tax holiday. North Riyadh positioning. JCI standards differentiation."}}},
   {id:"epicairway",name:"Epic Airway Systems",tagline:"The First Device Combining SGA Simplicity with ETT Security — Continuous Oxygenation, No Visualization Required",stage:"Active Diligence — High Interest",founder:"Dr. Eric Moses MD/MBA (CEO/CMO, Anesthesiologist Albany Med) · Keith McKenna (COO) · Dr. Sridhar Musuku (Inventor)",location:"Albany / Schenectady, New York (Founded 2021)",raised:"Pre-seed angel round open · $50K NYS Innovation Summit Award · Serial Stage Venture Partners invested",round:"Pre-seed angel round — funding 510(k) submission and initial US launch",tam:"$1.4B",tamNote:"Global airway management market. 250,000+ prehospital airway interventions annually in the US. Prehospital intubation attempts declining 30% — EMS moving to SGAs, creating urgent need for secure alternative.",projections:"First-mover in SGA+ETT combination category · EMS agency formulary approval pathway · Hospital and military secondary markets",competitors:[{name:"LMA Supreme / King LT / i-gel (SGAs)",note:"98% first-pass success but inferior airway security — do not provide ETT-equivalent protection"},{name:"Standard ETT + laryngoscope",note:"Gold standard security but 46% first-pass success in paramedics — requires visualization tools and skill"},{name:"Intubating LMAs (Fastrach)",note:"Require additional skill and visualization — not simpler than ETT for prehospital use"}],vital:{V:{score:"Strong",summary:"Reduces >10X complication increase from multiple intubation attempts. 86% vs 46% first-attempt success (p=0.003). Mean intubation time 1:06 vs 2:55. Direct cost savings for EMS systems via reduced complications and liability exposure."},I:{score:"Strong",summary:"In cardiac arrest, faster intubation = higher survival. Epic Airway cuts mean intubation time by 62%. Continuous oxygenation eliminates the ventilation gap during device transition. One paramedic in the study failed ETT after 3 attempts — would have succeeded with Epic Airway."},T:{score:"Developing",summary:"Pre-revenue, pre-510(k). $50K NYS Innovation Summit award, NSF I-Corps, Serial Stage Venture Partners invested, 2 patents filed, 15 prototype iterations complete — device is manufacturable. Published clinical white paper with statistically significant data."},A:{score:"Strong",summary:"Same blind insertion technique as SGAs already in widespread prehospital use — no new skill required. EMS already moving away from ETTs (30% decline). Epic Airway is the natural replacement: SGA simplicity + ETT security. FDA Class II 510(k) pathway — no clinical trials required."},L:{score:"Developing",summary:"2 patents filed. No current device combines SGA ease + ETT security + continuous oxygenation. Class II 510(k) predicate strategy is the key defensibility question — must be verified in diligence."}},docUrls:["https://www.dropbox.com/scl/fi/hmlr7g0t3rp3rcqlmxzq0/ASAngels_EpicAirway_1_QuickHit.docx?rlkey=1ziadp9na0kxbxhrmwba49wvf&dl=1","https://www.dropbox.com/scl/fi/vsu8linnska4dwnew6h4f/ASAngels_EpicAirway_2_DealEmail.docx?rlkey=6jivrnkeo6l3ulk72ptozxrtk&dl=1","https://www.dropbox.com/scl/fi/435v31slju9iz90ij20kp/ASAngels_EpicAirway_3_OnePager.docx?rlkey=jvi28mz25hdasp8rwmfx5n8x8&dl=1","https://www.dropbox.com/scl/fi/5h1xm9qc7s277bpn6er9h/ASAngels_EpicAirway_4_ShortMemo.docx?rlkey=hat1r7cj5l4r6ac9om05wbb0l&dl=1","https://www.dropbox.com/scl/fi/7c8ssgoos25f8mf32sjpn/ASAngels_EpicAirway_5_EisenhowerMemo.docx?rlkey=8r9d1xp2akwq0p4tb7nmnefwr&dl=1","https://www.dropbox.com/scl/fi/p4gggg7pkngisiojmn2ij/ASAngels_EpicAirway_6_DiligenceCallAgenda.docx?rlkey=pzq297qze9c2ni1y7q8a7wmvv&dl=1"]},
@@ -39,7 +62,7 @@ function ScorePill({score}){const m=VM[score]||VM["Unknown"];return<span style={
 function makeWAPost(d){
   const dot=(SM[d.stage]||{}).dot||"🔵";
   const vl=(k,l)=>{const v=d.vital[k];const m=VM[v.score]||VM["Unknown"];return`*${k} — ${l}:* ${m.label}\n↳ ${v.summary}`;};
-  return `🏥 *ASAngels | Deal Alert*\n━━━━━━━━━━━━━━━━━━━━━━━\n\n*${d.name.toUpperCase()}*\n_${d.tagline}_\n\n*Stage:* ${dot} ${d.stage}\n*Founder:* ${d.founder}\n*Location:* ${d.location}\n*Financing:* ${d.raised}\n\n━━━━━━━━━━━━━━━━━━━━━━━\n💰 *MARKET OPPORTUNITY*\n\n*TAM:* ${d.tam}\n${d.tamNote}\n\n📈 *Projections:* ${d.projections}\n\n━━━━━━━━━━━━━━━━━━━━━━━\n🏆 *KEY PLAYERS IN SPACE*\n${d.competitors.map(c=>`• *${c.name}* — ${c.note}`).join('\n')}\n\n━━━━━━━━━━━━━━━━━━━━━━━\n📊 *VITAL ASSESSMENT*\n\n${vl('V','Value')}\n\n${vl('I','Impact')}\n\n${vl('T','Traction')}\n\n${vl('A','Adoption')}\n\n${vl('L','Landscape')}\n\n━━━━━━━━━━━━━━━━━━━━━━━\n📁 *DEAL DOCUMENTS — 6 Available*\n\n🔒 asangels.shahrx.com\n_Message Dr. Shah for your access password_\n\n1️⃣ Quick Hit — 60-second summary\n2️⃣ Deal Email — LP announcement  \n3️⃣ One-Pager — Full investment thesis\n4️⃣ Short GP Memo — Internal GP brief\n5️⃣ Eisenhower Memo — Full diligence report\n6️⃣ Diligence Call Agenda\n\n━━━━━━━━━━━━━━━━━━━━━━━\n_ASAngels Management LLC · For accredited investors only_`;
+  return `🏥 *Vigilance Capital Partners | Deal Alert*\n━━━━━━━━━━━━━━━━━━━━━━━\n\n*${d.name.toUpperCase()}*\n_${d.tagline}_\n\n*Stage:* ${dot} ${d.stage}\n*Founder:* ${d.founder}\n*Location:* ${d.location}\n*Financing:* ${d.raised}\n\n━━━━━━━━━━━━━━━━━━━━━━━\n💰 *MARKET OPPORTUNITY*\n\n*TAM:* ${d.tam}\n${d.tamNote}\n\n📈 *Projections:* ${d.projections}\n\n━━━━━━━━━━━━━━━━━━━━━━━\n🏆 *KEY PLAYERS IN SPACE*\n${d.competitors.map(c=>`• *${c.name}* — ${c.note}`).join('\n')}\n\n━━━━━━━━━━━━━━━━━━━━━━━\n📊 *VITAL ASSESSMENT*\n\n${vl('V','Value')}\n\n${vl('I','Impact')}\n\n${vl('T','Traction')}\n\n${vl('A','Adoption')}\n\n${vl('L','Landscape')}\n\n━━━━━━━━━━━━━━━━━━━━━━━\n📁 *DEAL DOCUMENTS — 6 Available*\n\n🔒 vcp.shahrx.com\n_Message Dr. Shah for your access password_\n\n1️⃣ Quick Hit — 60-second summary\n2️⃣ Deal Email — LP announcement  \n3️⃣ One-Pager — Full investment thesis\n4️⃣ Short GP Memo — Internal GP brief\n5️⃣ Eisenhower Memo — Full diligence report\n6️⃣ Diligence Call Agenda\n\n━━━━━━━━━━━━━━━━━━━━━━━\n_Vigilance Capital Partners LLC · For accredited investors only_`;
 }
 
 function TickerBand({user}) {
@@ -47,7 +70,7 @@ function TickerBand({user}) {
   const [loading,setLoading]=useState(true);
   const [pos,setPos]=useState(0);
   const tickerRef=useRef(null);
-  const GOLD="#C9922A", NAVY="#1B3A6B";
+  const GOLD="#B8935D", NAVY="#0F1F3D";
 
   useEffect(()=>{
     async function fetchNews(){
@@ -67,13 +90,13 @@ function TickerBand({user}) {
     return()=>clearInterval(interval);
   },[items]);
 
-  const typeColor={Portfolio:"#166534",Industry:"#185FA5",Competitor:"#7F1D1D"};
-  const typeBg={Portfolio:"#EAF3DE",Industry:"#E6F1FB",Competitor:"#FCEBEB"};
+  const typeColor={Portfolio:NAVY,Industry:NAVY,Competitor:"#7A4E2E"};
+  const typeBg={Portfolio:GOLD_PALE,Industry:CREAM_DEEP,Competitor:"#F5E8DC"};
 
   if(loading)return(
     <div style={{background:NAVY,borderTop:`2px solid ${GOLD}`,borderBottom:`2px solid ${GOLD}`,padding:"8px 16px",display:"flex",alignItems:"center",gap:12}}>
-      <div style={{fontSize:10,color:GOLD,fontWeight:700,fontFamily:"Georgia,serif",whiteSpace:"nowrap",flexShrink:0}}>📡 LIVE FEED</div>
-      <div style={{fontSize:11,color:"#8fa8c8",fontFamily:"Georgia,serif",fontStyle:"italic"}}>Loading latest news on portfolio companies and industry...</div>
+      <div style={{fontSize:10,color:GOLD,fontWeight:700,fontFamily:SERIF,whiteSpace:"nowrap",flexShrink:0}}>📡 LIVE FEED</div>
+      <div style={{fontSize:11,color:"rgba(250,248,243,0.65)",fontFamily:SERIF,fontStyle:"italic"}}>Loading latest news on portfolio companies and industry...</div>
     </div>
   );
 
@@ -85,14 +108,14 @@ function TickerBand({user}) {
   return(
     <div style={{background:NAVY,borderTop:`2px solid ${GOLD}`,borderBottom:`2px solid ${GOLD}`,padding:"6px 0",overflow:"hidden",position:"relative"}}>
       <div style={{display:"flex",alignItems:"center"}}>
-        <div style={{background:GOLD,padding:"4px 12px",fontWeight:700,fontSize:10,color:"white",fontFamily:"Georgia,serif",whiteSpace:"nowrap",flexShrink:0,letterSpacing:"0.1em",zIndex:2}}>📡 LIVE</div>
+        <div style={{background:GOLD,padding:"4px 12px",fontWeight:700,fontSize:10,color:CREAM,fontFamily:SERIF,whiteSpace:"nowrap",flexShrink:0,letterSpacing:"0.1em",zIndex:2}}>📡 LIVE</div>
         <div style={{overflow:"hidden",flex:1,position:"relative"}}>
           <div style={{display:"flex",gap:0,transform:`translateX(${pos % totalWidth}px)`,whiteSpace:"nowrap",transition:"none"}}>
             {doubled.map((item,i)=>(
               <div key={i} style={{display:"inline-flex",alignItems:"center",gap:8,padding:"0 24px",borderRight:"1px solid rgba(255,255,255,0.15)",flexShrink:0}}>
-                <span style={{background:typeBg[item.type]||"#EBF1F8",color:typeColor[item.type]||NAVY,fontSize:9,fontWeight:700,padding:"1px 6px",borderRadius:3,fontFamily:"Georgia,serif",whiteSpace:"nowrap"}}>{item.label}</span>
-                <span style={{fontSize:11,color:"#e0e8f4",fontFamily:"Georgia,serif",whiteSpace:"nowrap",maxWidth:380,overflow:"hidden",textOverflow:"ellipsis"}}>{item.headline}</span>
-                <span style={{fontSize:10,color:"#6080a0",fontFamily:"Georgia,serif",whiteSpace:"nowrap"}}>{item.source} · {item.date}</span>
+                <span style={{background:typeBg[item.type]||CREAM_DEEP,color:typeColor[item.type]||NAVY,fontSize:9,fontWeight:700,padding:"1px 6px",borderRadius:2,fontFamily:SERIF,whiteSpace:"nowrap"}}>{item.label}</span>
+                <span style={{fontSize:11,color:"rgba(250,248,243,0.85)",fontFamily:SERIF,whiteSpace:"nowrap",maxWidth:380,overflow:"hidden",textOverflow:"ellipsis"}}>{item.headline}</span>
+                <span style={{fontSize:10,color:"rgba(250,248,243,0.5)",fontFamily:SERIF,whiteSpace:"nowrap"}}>{item.source} · {item.date}</span>
               </div>
             ))}
           </div>
@@ -106,9 +129,9 @@ function NewsFeedSection({feeds, maxFeeds=8}) {
   const [articles, setArticles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const NAVY="#1B3A6B", GOLD="#C9922A";
-  const typeColor={Portfolio:"#166534",Industry:"#185FA5",Competitor:"#7F1D1D",Public:"#1e40af"};
-  const typeBg={Portfolio:"#EAF3DE",Industry:"#E6F1FB",Competitor:"#FCEBEB",Public:"#EBF1F8"};
+  const NAVY="#0F1F3D", GOLD="#B8935D";
+  const typeColor={Portfolio:NAVY,Industry:NAVY,Competitor:"#7A4E2E",Public:NAVY};
+  const typeBg={Portfolio:GOLD_PALE,Industry:CREAM_DEEP,Competitor:"#F5E8DC",Public:CREAM_DEEP};
 
   useEffect(()=>{
     fetch("/api/news")
@@ -125,41 +148,41 @@ function NewsFeedSection({feeds, maxFeeds=8}) {
   },[]);
 
   if(loading) return(
-    <div style={{background:"white",border:"1px solid #e5e2d9",borderRadius:10,padding:"20px 24px",marginBottom:16}}>
+    <div style={{background:PAPER,border:"1px solid #E5E0D5",borderRadius:4,padding:"20px 24px",marginBottom:16}}>
       <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:12}}>
         <div style={{width:8,height:8,borderRadius:"50%",background:GOLD,animation:"pulse 1.5s infinite"}}/>
-        <div style={{fontSize:10,color:GOLD,letterSpacing:"0.2em",fontFamily:"Georgia,serif",fontWeight:700}}>LIVE MARKET INTELLIGENCE — LOADING...</div>
+        <div style={{fontSize:10,color:GOLD,letterSpacing:"0.2em",fontFamily:SERIF,fontWeight:700}}>LIVE MARKET INTELLIGENCE — LOADING...</div>
       </div>
       {[1,2,3,4].map(i=>(
-        <div key={i} style={{height:60,background:"#f5f3ee",borderRadius:6,marginBottom:8,animation:"pulse 1.5s infinite"}}/>
+        <div key={i} style={{height:60,background:"#EFEAE0",borderRadius:2,marginBottom:8,animation:"pulse 1.5s infinite"}}/>
       ))}
     </div>
   );
 
   if(error||articles.length===0) return(
-    <div style={{background:"white",border:"1px solid #e5e2d9",borderRadius:10,padding:"20px 24px",marginBottom:16}}>
-      <div style={{fontSize:10,color:GOLD,letterSpacing:"0.2em",fontFamily:"Georgia,serif",marginBottom:8}}>MARKET INTELLIGENCE</div>
-      <div style={{fontSize:12,color:"#bbb",fontStyle:"italic",fontFamily:"Georgia,serif"}}>News feed unavailable. Check API connectivity.</div>
+    <div style={{background:PAPER,border:"1px solid #E5E0D5",borderRadius:4,padding:"20px 24px",marginBottom:16}}>
+      <div style={{fontSize:10,color:GOLD,letterSpacing:"0.2em",fontFamily:SERIF,marginBottom:8}}>MARKET INTELLIGENCE</div>
+      <div style={{fontSize:12,color:TEXT_MUTED,fontStyle:"italic",fontFamily:SERIF}}>News feed unavailable. Check API connectivity.</div>
     </div>
   );
 
   return(
-    <div style={{background:"white",border:"1px solid #e5e2d9",borderRadius:10,padding:"20px 24px",marginBottom:16}}>
+    <div style={{background:PAPER,border:"1px solid #E5E0D5",borderRadius:4,padding:"20px 24px",marginBottom:16}}>
       <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:16}}>
-        <div style={{width:8,height:8,borderRadius:"50%",background:"#22c55e"}}/>
-        <div style={{fontSize:10,color:GOLD,letterSpacing:"0.2em",fontFamily:"Georgia,serif",fontWeight:700}}>LIVE MARKET INTELLIGENCE — {articles.length} ARTICLES LOADED</div>
-        <div style={{fontSize:9,color:"#bbb",fontFamily:"Georgia,serif",marginLeft:"auto"}}>Updated {new Date().toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"})}</div>
+        <div style={{width:8,height:8,borderRadius:"50%",background:GOLD}}/>
+        <div style={{fontSize:10,color:GOLD,letterSpacing:"0.2em",fontFamily:SERIF,fontWeight:700}}>LIVE MARKET INTELLIGENCE — {articles.length} ARTICLES LOADED</div>
+        <div style={{fontSize:9,color:TEXT_MUTED,fontFamily:SERIF,marginLeft:"auto"}}>Updated {new Date().toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"})}</div>
       </div>
       <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(300px,1fr))",gap:10}}>
         {articles.map((a,i)=>(
-          <div key={i} style={{background:"#fafaf8",borderRadius:8,padding:"14px 16px",border:"1px solid #f0ede6",display:"flex",flexDirection:"column",gap:6}}>
+          <div key={i} style={{background:"#F5F1E8",borderRadius:2,padding:"14px 16px",border:"1px solid #EFEAE0",display:"flex",flexDirection:"column",gap:6}}>
             <div style={{display:"flex",alignItems:"center",gap:6,flexWrap:"wrap"}}>
-              <span style={{background:typeBg[a.type]||"#EBF1F8",color:typeColor[a.type]||NAVY,fontSize:9,fontWeight:700,padding:"2px 8px",borderRadius:3,fontFamily:"Georgia,serif",flexShrink:0}}>{a.label}</span>
-              <span style={{fontSize:9,background:"#f0ede6",color:"#888",padding:"2px 6px",borderRadius:3,fontFamily:"Georgia,serif",flexShrink:0}}>{a.type}</span>
-              <span style={{fontSize:9,color:"#bbb",fontFamily:"Georgia,serif",marginLeft:"auto",flexShrink:0}}>{a.date} · {a.source}</span>
+              <span style={{background:typeBg[a.type]||CREAM_DEEP,color:typeColor[a.type]||NAVY,fontSize:9,fontWeight:700,padding:"2px 8px",borderRadius:2,fontFamily:SERIF,flexShrink:0}}>{a.label}</span>
+              <span style={{fontSize:9,background:"#EFEAE0",color:TEXT_LIGHT,padding:"2px 6px",borderRadius:2,fontFamily:SERIF,flexShrink:0}}>{a.type}</span>
+              <span style={{fontSize:9,color:TEXT_MUTED,fontFamily:SERIF,marginLeft:"auto",flexShrink:0}}>{a.date} · {a.source}</span>
             </div>
-            <div style={{fontSize:12,fontWeight:600,color:NAVY,fontFamily:"Georgia,serif",lineHeight:1.4}}>{a.headline}</div>
-            {a.summary&&<div style={{fontSize:11,color:"#666",fontFamily:"Georgia,serif",lineHeight:1.4}}>{a.summary}</div>}
+            <div style={{fontSize:12,fontWeight:600,color:NAVY,fontFamily:SERIF,lineHeight:1.4}}>{a.headline}</div>
+            {a.summary&&<div style={{fontSize:11,color:TEXT_LIGHT,fontFamily:SERIF,lineHeight:1.4}}>{a.summary}</div>}
           </div>
         ))}
       </div>
@@ -169,40 +192,40 @@ function NewsFeedSection({feeds, maxFeeds=8}) {
 
 function VettingTimeline({timeline}) {
   if(!timeline||!timeline.length) return null;
-  const NAVY="#1B3A6B", GOLD="#C9922A";
+  const NAVY="#0F1F3D", GOLD="#B8935D";
   const sorted=[...timeline].sort((a,b)=>new Date(a.date)-new Date(b.date));
   const ours=sorted.filter(t=>t.type==="ours");
   const theirs=sorted.filter(t=>t.type==="company");
   const fmt=d=>new Date(d).toLocaleDateString("en-US",{month:"short",day:"numeric",year:"2-digit"});
 
   return(
-    <div style={{background:"white",border:"1px solid #e5e2d9",borderRadius:10,padding:"20px 24px",marginBottom:16}}>
-      <div style={{fontSize:10,color:GOLD,letterSpacing:"0.2em",fontFamily:"Georgia,serif",marginBottom:16}}>VETTING TIMELINE</div>
+    <div style={{background:PAPER,border:"1px solid #E5E0D5",borderRadius:4,padding:"20px 24px",marginBottom:16}}>
+      <div style={{fontSize:10,color:GOLD,letterSpacing:"0.2em",fontFamily:SERIF,marginBottom:16}}>VETTING TIMELINE</div>
       <div style={{display:"flex",gap:0,position:"relative"}}>
         {/* Left column — Our milestones */}
         <div style={{flex:1,paddingRight:20}}>
-          <div style={{fontSize:9,color:NAVY,fontWeight:700,letterSpacing:"0.15em",marginBottom:10,fontFamily:"Georgia,serif",textAlign:"right"}}>ASAngels MILESTONES</div>
+          <div style={{fontSize:9,color:NAVY,fontWeight:500,letterSpacing:"0.32em",textTransform:"uppercase",marginBottom:10,fontFamily:SANS,textAlign:"right"}}>VCP Milestones</div>
           {ours.map((t,i)=>(
             <div key={i} style={{display:"flex",justifyContent:"flex-end",alignItems:"flex-start",marginBottom:10,gap:8}}>
               <div style={{textAlign:"right"}}>
-                <div style={{fontSize:11,fontWeight:600,color:NAVY,fontFamily:"Georgia,serif"}}>{t.label}</div>
-                <div style={{fontSize:10,color:"#999",fontFamily:"Georgia,serif"}}>{fmt(t.date)}</div>
+                <div style={{fontSize:11,fontWeight:600,color:NAVY,fontFamily:SERIF}}>{t.label}</div>
+                <div style={{fontSize:10,color:TEXT_MUTED,fontFamily:SERIF}}>{fmt(t.date)}</div>
               </div>
               <div style={{width:8,height:8,borderRadius:"50%",background:GOLD,flexShrink:0,marginTop:3}}/>
             </div>
           ))}
         </div>
         {/* Center line */}
-        <div style={{width:2,background:"linear-gradient(to bottom, #e5e2d9, "+NAVY+", #e5e2d9)",borderRadius:2,flexShrink:0,minHeight:80}}/>
+        <div style={{width:1,background:BORDER,flexShrink:0,minHeight:80}}/>
         {/* Right column — Company milestones */}
         <div style={{flex:1,paddingLeft:20}}>
-          <div style={{fontSize:9,color:NAVY,fontWeight:700,letterSpacing:"0.15em",marginBottom:10,fontFamily:"Georgia,serif"}}>COMPANY MILESTONES</div>
+          <div style={{fontSize:9,color:NAVY,fontWeight:500,letterSpacing:"0.32em",textTransform:"uppercase",marginBottom:10,fontFamily:SANS}}>Company Milestones</div>
           {theirs.map((t,i)=>(
             <div key={i} style={{display:"flex",alignItems:"flex-start",marginBottom:10,gap:8}}>
               <div style={{width:8,height:8,borderRadius:"50%",background:NAVY,flexShrink:0,marginTop:3}}/>
               <div>
-                <div style={{fontSize:11,fontWeight:600,color:NAVY,fontFamily:"Georgia,serif"}}>{t.label}</div>
-                <div style={{fontSize:10,color:"#999",fontFamily:"Georgia,serif"}}>{fmt(t.date)}</div>
+                <div style={{fontSize:11,fontWeight:600,color:NAVY,fontFamily:SERIF}}>{t.label}</div>
+                <div style={{fontSize:10,color:TEXT_MUTED,fontFamily:SERIF}}>{fmt(t.date)}</div>
               </div>
             </div>
           ))}
@@ -212,30 +235,57 @@ function VettingTimeline({timeline}) {
   );
 }
 
-function PublicDealCard({d, onClick}) {
-  const NAVY="#1B3A6B", GOLD="#C9922A";
-  const vitalColors={Strong:"#166534",Developing:"#92400E","Very Strong":"#1e40af",Weak:"#7F1D1D",Unknown:"#555"};
-  const vitalBg={Strong:"#EAF3DE",Developing:"#FAEEDA","Very Strong":"#EBF1F8",Weak:"#FCEBEB",Unknown:"#f0ede6"};
-  const stageColor=d.stage.includes("Complete")?"#166534":d.stage.includes("Scheduled")?"#185FA5":"#92400E";
-  const stageBg=d.stage.includes("Complete")?"#EAF3DE":d.stage.includes("Scheduled")?"#E6F1FB":"#FAEEDA";
+function Footer() {
   return(
-    <div onClick={()=>onClick(d)} style={{background:"white",border:"1px solid #e5e2d9",borderRadius:12,padding:"20px 22px",cursor:"pointer",transition:"box-shadow 0.15s",boxShadow:"0 1px 4px rgba(0,0,0,0.06)"}}>
+    <footer style={{background:NAVY_DEEP,padding:"40px 24px 28px",marginTop:48}}>
+      <div style={{maxWidth:1080,margin:"0 auto"}}>
+        <div style={{fontFamily:SERIF,fontSize:18,fontWeight:500,color:CREAM,letterSpacing:"-0.01em",marginBottom:16}}>
+          Vigilance <em style={{fontStyle:"italic",color:GOLD,fontWeight:500}}>Capital</em> Partners
+        </div>
+        <div style={{fontFamily:SANS,fontSize:11,color:"rgba(250,248,243,0.4)",lineHeight:1.7,maxWidth:760,marginBottom:18}}>
+          Vigilance Capital Partners is not a registered investment adviser. This portal is for informational purposes only and does not constitute an offer to sell, or a solicitation of an offer to buy, any securities. All investments involve risk, including possible loss of principal.
+        </div>
+        <div style={{fontFamily:SANS,fontSize:11,color:"rgba(250,248,243,0.55)",letterSpacing:"0.02em"}}>
+          © 2026 Vigilance Capital Partners. All rights reserved.
+        </div>
+      </div>
+    </footer>
+  );
+}
+
+function VcpLogo({size=20, onCream=false}) {
+  const baseColor = onCream ? NAVY : CREAM;
+  return(
+    <div style={{fontFamily:SERIF,fontSize:size,fontWeight:500,color:baseColor,letterSpacing:"-0.01em",lineHeight:1}}>
+      Vigilance <em style={{fontStyle:"italic",color:GOLD,fontWeight:500}}>Capital</em> Partners
+    </div>
+  );
+}
+
+function PublicDealCard({d, onClick}) {
+  const NAVY="#0F1F3D", GOLD="#B8935D";
+  const vitalColors={Strong:NAVY,Developing:"#7A4E2E","Very Strong":NAVY,Weak:"#7A4E2E",Unknown:TEXT};
+  const vitalBg={Strong:GOLD_PALE,Developing:"#F5E8DC","Very Strong":CREAM_DEEP,Weak:"#F5E8DC",Unknown:"#EFEAE0"};
+  const stageColor=d.stage.includes("Complete")?NAVY:d.stage.includes("Scheduled")?NAVY:"#7A4E2E";
+  const stageBg=d.stage.includes("Complete")?GOLD_PALE:d.stage.includes("Scheduled")?CREAM_DEEP:"#F5E8DC";
+  return(
+    <div onClick={()=>onClick(d)} style={{background:PAPER,border:`1px solid ${BORDER}`,borderRadius:4,padding:"22px 24px",cursor:"pointer",transition:"border-color 0.2s ease"}} onMouseEnter={e=>e.currentTarget.style.borderColor=GOLD} onMouseLeave={e=>e.currentTarget.style.borderColor=BORDER}>
       <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",marginBottom:8}}>
         <div>
-          <span style={{fontSize:22,fontWeight:700,color:NAVY,fontFamily:"Georgia,serif"}}>{d.ticker}</span>
-          <span style={{fontSize:14,color:"#888",fontFamily:"Georgia,serif",marginLeft:8}}>{d.name}</span>
+          <span style={{fontSize:22,fontWeight:700,color:NAVY,fontFamily:SERIF}}>{d.ticker}</span>
+          <span style={{fontSize:14,color:TEXT_LIGHT,fontFamily:SERIF,marginLeft:8}}>{d.name}</span>
         </div>
-        <span style={{background:stageBg,color:stageColor,fontSize:9,fontWeight:700,padding:"3px 8px",borderRadius:4,fontFamily:"Georgia,serif",whiteSpace:"nowrap"}}>{d.stage}</span>
+        <span style={{background:stageBg,color:stageColor,fontSize:9,fontWeight:700,padding:"3px 8px",borderRadius:4,fontFamily:SERIF,whiteSpace:"nowrap"}}>{d.stage}</span>
       </div>
-      <div style={{fontSize:11,color:"#666",fontFamily:"Georgia,serif",marginBottom:10,lineHeight:1.4}}>{d.tagline}</div>
+      <div style={{fontSize:11,color:TEXT_LIGHT,fontFamily:SERIF,marginBottom:10,lineHeight:1.4}}>{d.tagline}</div>
       <div style={{display:"flex",gap:16,marginBottom:10,flexWrap:"wrap"}}>
-        <div><div style={{fontSize:9,color:GOLD,letterSpacing:"0.1em",fontFamily:"Georgia,serif"}}>MKT CAP</div><div style={{fontSize:12,fontWeight:600,color:NAVY,fontFamily:"Georgia,serif"}}>{d.marketCap}</div></div>
-        <div><div style={{fontSize:9,color:GOLD,letterSpacing:"0.1em",fontFamily:"Georgia,serif"}}>CASH</div><div style={{fontSize:12,fontWeight:600,color:NAVY,fontFamily:"Georgia,serif"}}>{d.cash}</div></div>
-        <div><div style={{fontSize:9,color:GOLD,letterSpacing:"0.1em",fontFamily:"Georgia,serif"}}>ANALYSTS</div><div style={{fontSize:12,fontWeight:600,color:NAVY,fontFamily:"Georgia,serif"}}>{d.analysts}</div></div>
+        <div><div style={{fontSize:9,color:GOLD,letterSpacing:"0.1em",fontFamily:SERIF}}>MKT CAP</div><div style={{fontSize:12,fontWeight:600,color:NAVY,fontFamily:SERIF}}>{d.marketCap}</div></div>
+        <div><div style={{fontSize:9,color:GOLD,letterSpacing:"0.1em",fontFamily:SERIF}}>CASH</div><div style={{fontSize:12,fontWeight:600,color:NAVY,fontFamily:SERIF}}>{d.cash}</div></div>
+        <div><div style={{fontSize:9,color:GOLD,letterSpacing:"0.1em",fontFamily:SERIF}}>ANALYSTS</div><div style={{fontSize:12,fontWeight:600,color:NAVY,fontFamily:SERIF}}>{d.analysts}</div></div>
       </div>
       <div style={{display:"flex",gap:4,flexWrap:"wrap"}}>
         {Object.entries(d.vital).map(([k,v])=>(
-          <span key={k} style={{background:vitalBg[v.score]||"#f0ede6",color:vitalColors[v.score]||"#555",fontSize:9,fontWeight:700,padding:"2px 7px",borderRadius:3,fontFamily:"Georgia,serif"}}>{k}: {v.score}</span>
+          <span key={k} style={{background:vitalBg[v.score]||"#EFEAE0",color:vitalColors[v.score]||TEXT,fontSize:9,fontWeight:700,padding:"2px 7px",borderRadius:2,fontFamily:SERIF}}>{k}: {v.score}</span>
         ))}
       </div>
     </div>
@@ -291,33 +341,38 @@ export default function App(){
     return elapsed;
   }
 
-  if(ld)return<div style={{display:"flex",alignItems:"center",justifyContent:"center",height:"100vh",background:NAVY}}><div style={{color:GOLD,fontSize:18,fontFamily:"Georgia,serif"}}>Loading ASAngels...</div></div>;
+  if(ld)return<div style={{display:"flex",alignItems:"center",justifyContent:"center",height:"100vh",background:CREAM}}><div style={{color:NAVY,fontSize:18,fontFamily:SERIF,fontWeight:500,letterSpacing:"-0.01em"}}>Loading Vigilance <em style={{color:GOLD,fontStyle:"italic"}}>Capital</em>…</div></div>;
 
   // LOGIN
   if(view==="login")return(
-    <div style={{minHeight:"100vh",background:NAVY,display:"flex",alignItems:"center",justifyContent:"center",padding:24}}>
-      <div style={{width:"100%",maxWidth:400}}>
-        <div style={{textAlign:"center",marginBottom:36}}>
-          <div style={{fontSize:11,color:GOLD,letterSpacing:"0.25em",fontFamily:"Georgia,serif",marginBottom:10}}>PHYSICIAN-LED VENTURE PLATFORM</div>
-          <div style={{fontSize:48,fontWeight:700,color:"white",fontFamily:"Georgia,serif"}}>ASAngels</div>
-          <div style={{fontSize:13,color:"#8fa8c8",fontFamily:"Georgia,serif",marginTop:4}}>Deal Room — Confidential Access</div>
+    <div style={{minHeight:"100vh",background:CREAM,display:"flex",flexDirection:"column"}}>
+      <div style={{flex:1,display:"flex",alignItems:"center",justifyContent:"center",padding:24}}>
+        <div style={{width:"100%",maxWidth:440}}>
+          <div style={{textAlign:"center",marginBottom:40}}>
+            <div style={{fontFamily:SANS,fontSize:10,color:GOLD,letterSpacing:"0.32em",textTransform:"uppercase",fontWeight:500,marginBottom:18}}>Physician-Led Venture Platform</div>
+            <div style={{fontFamily:SERIF,fontSize:44,fontWeight:500,color:NAVY,letterSpacing:"-0.015em",lineHeight:1.1}}>
+              Vigilance <em style={{fontStyle:"italic",color:GOLD,fontWeight:500}}>Capital</em><br/>Partners
+            </div>
+            <div style={{fontFamily:SANS,fontSize:13,color:TEXT_LIGHT,marginTop:14,letterSpacing:"0.02em"}}>Deal Room · Confidential Access</div>
+          </div>
+          <div style={{background:PAPER,border:`1px solid ${BORDER}`,borderRadius:4,padding:32}}>
+            {step==="password"?(<>
+              <div style={{fontFamily:SANS,fontSize:12,color:TEXT_LIGHT,marginBottom:18,textAlign:"center"}}>Enter your access password</div>
+              <input value={pw} onChange={e=>setPw(e.target.value)} onKeyDown={e=>e.key==="Enter"&&handlePw()} type="password" placeholder="Access Password" style={{width:"100%",padding:"12px 14px",borderRadius:2,border:`1px solid ${BORDER}`,background:CREAM,color:TEXT,fontSize:14,outline:"none",boxSizing:"border-box",fontFamily:SANS,marginBottom:12,transition:"border-color 0.2s"}} onFocus={e=>e.target.style.borderColor=GOLD} onBlur={e=>e.target.style.borderColor=BORDER}/>
+              {err&&<div style={{color:"#7A4E2E",fontSize:12,marginBottom:10,textAlign:"center",fontFamily:SANS}}>{err}</div>}
+              <button onClick={handlePw} className="vcp-btn-primary" style={{width:"100%"}}>Enter Deal Room</button>
+              <div style={{textAlign:"center",marginTop:18,fontFamily:SANS,fontSize:11,color:TEXT_MUTED}}>Contact Dr. Aalap Shah, MD for access</div>
+            </>):(<>
+              <div style={{fontFamily:SANS,fontSize:12,color:TEXT_LIGHT,marginBottom:18,textAlign:"center"}}>Welcome. Please identify yourself.</div>
+              <input value={nameV} onChange={e=>setName(e.target.value)} onKeyDown={e=>e.key==="Enter"&&handleName()} type="text" placeholder="Your full name (e.g. Dr. Jane Smith)" style={{width:"100%",padding:"12px 14px",borderRadius:2,border:`1px solid ${BORDER}`,background:CREAM,color:TEXT,fontSize:14,outline:"none",boxSizing:"border-box",fontFamily:SANS,marginBottom:12,transition:"border-color 0.2s"}} onFocus={e=>e.target.style.borderColor=GOLD} onBlur={e=>e.target.style.borderColor=BORDER}/>
+              {err&&<div style={{color:"#7A4E2E",fontSize:12,marginBottom:10,textAlign:"center",fontFamily:SANS}}>{err}</div>}
+              <button onClick={handleName} className="vcp-btn-primary" style={{width:"100%"}}>Access Deals</button>
+            </>)}
+          </div>
+          <div style={{textAlign:"center",marginTop:24,fontFamily:SANS,fontSize:10,color:TEXT_MUTED,lineHeight:1.7,letterSpacing:"0.02em"}}>For accredited investors only · These materials do not constitute an offer to sell securities</div>
         </div>
-        <div style={{background:"rgba(255,255,255,0.05)",border:"1px solid rgba(255,255,255,0.12)",borderRadius:12,padding:28}}>
-          {step==="password"?(<>
-            <div style={{fontSize:12,color:"#aac",marginBottom:18,fontFamily:"Georgia,serif",textAlign:"center"}}>Enter your access password</div>
-            <input value={pw} onChange={e=>setPw(e.target.value)} onKeyDown={e=>e.key==="Enter"&&handlePw()} type="password" placeholder="Access Password" style={{width:"100%",padding:"11px 14px",borderRadius:7,border:"1px solid rgba(255,255,255,0.2)",background:"rgba(255,255,255,0.08)",color:"white",fontSize:14,outline:"none",boxSizing:"border-box",fontFamily:"Georgia,serif",marginBottom:10}}/>
-            {err&&<div style={{color:"#f87171",fontSize:12,marginBottom:8,textAlign:"center"}}>{err}</div>}
-            <button onClick={handlePw} style={{width:"100%",padding:"11px 0",background:GOLD,color:"white",border:"none",borderRadius:7,fontSize:13,fontWeight:700,cursor:"pointer",fontFamily:"Georgia,serif",letterSpacing:"0.05em"}}>ENTER DEAL ROOM</button>
-            <div style={{textAlign:"center",marginTop:14,fontSize:11,color:"#4a6080",fontFamily:"Georgia,serif"}}>Contact Dr. Aalap Shah, MD for access</div>
-          </>):(<>
-            <div style={{fontSize:12,color:"#aac",marginBottom:18,fontFamily:"Georgia,serif",textAlign:"center"}}>Welcome. Please identify yourself.</div>
-            <input value={nameV} onChange={e=>setName(e.target.value)} onKeyDown={e=>e.key==="Enter"&&handleName()} type="text" placeholder="Your full name (e.g. Dr. Jane Smith)" style={{width:"100%",padding:"11px 14px",borderRadius:7,border:"1px solid rgba(255,255,255,0.2)",background:"rgba(255,255,255,0.08)",color:"white",fontSize:14,outline:"none",boxSizing:"border-box",fontFamily:"Georgia,serif",marginBottom:10}}/>
-            {err&&<div style={{color:"#f87171",fontSize:12,marginBottom:8,textAlign:"center"}}>{err}</div>}
-            <button onClick={handleName} style={{width:"100%",padding:"11px 0",background:GOLD,color:"white",border:"none",borderRadius:7,fontSize:13,fontWeight:700,cursor:"pointer",fontFamily:"Georgia,serif",letterSpacing:"0.05em"}}>ACCESS DEALS</button>
-          </>)}
-        </div>
-        <div style={{textAlign:"center",marginTop:20,fontSize:10,color:"#2d4060",fontFamily:"Georgia,serif",lineHeight:1.6}}>For accredited investors only · These materials do not constitute an offer to sell securities</div>
       </div>
+      <Footer/>
     </div>
   );
 
@@ -326,50 +381,53 @@ export default function App(){
     const active=DEALS.filter(d=>d.stage.includes("Active"));
     const other=DEALS.filter(d=>!d.stage.includes("Active"));
     return(
-      <div style={{minHeight:"100vh",background:"#f8f7f4"}}>
-        <div style={{background:NAVY,padding:"14px 28px",display:"flex",justifyContent:"space-between",alignItems:"center",position:"sticky",top:0,zIndex:10,boxShadow:"0 2px 12px rgba(0,0,0,0.2)"}}>
-          <div style={{display:"flex",alignItems:"center",gap:10}}><div style={{fontSize:20,fontWeight:700,color:"white",fontFamily:"Georgia,serif"}}>ASAngels</div><div style={{fontSize:10,color:GOLD,letterSpacing:"0.15em"}}>DEAL ROOM</div></div>
-          <div style={{display:"flex",alignItems:"center",gap:12}}>
-            <div style={{fontSize:11,color:"#8fa8c8",fontFamily:"Georgia,serif"}}>Welcome, {u?.name}</div>
-            {u?.isAdmin&&<button onClick={()=>setView("admin")} style={{background:"rgba(201,146,42,0.2)",color:GOLD,border:`1px solid ${GOLD}`,borderRadius:5,padding:"4px 10px",fontSize:10,cursor:"pointer",fontFamily:"Georgia,serif",fontWeight:600}}>ANALYTICS</button>}
-            <button onClick={logout} style={{background:"rgba(255,255,255,0.07)",color:"#8fa8c8",border:"1px solid rgba(255,255,255,0.15)",borderRadius:5,padding:"4px 10px",fontSize:10,cursor:"pointer",fontFamily:"Georgia,serif"}}>Sign Out</button>
+      <div style={{minHeight:"100vh",background:CREAM,display:"flex",flexDirection:"column"}}>
+        <div style={{background:"rgba(250,248,243,0.85)",backdropFilter:"blur(20px)",WebkitBackdropFilter:"blur(20px)",padding:"16px 28px",display:"flex",justifyContent:"space-between",alignItems:"center",position:"sticky",top:0,zIndex:10,borderBottom:`1px solid ${BORDER}`}}>
+          <div style={{display:"flex",alignItems:"center",gap:14}}>
+            <VcpLogo size={18} onCream={true}/>
+            <div style={{fontFamily:SANS,fontSize:10,color:GOLD,letterSpacing:"0.32em",textTransform:"uppercase",fontWeight:500,borderLeft:`1px solid ${BORDER}`,paddingLeft:14}}>Deal Room</div>
+          </div>
+          <div style={{display:"flex",alignItems:"center",gap:14}}>
+            <div style={{fontFamily:SANS,fontSize:12,color:TEXT_LIGHT}}>Welcome, {u?.name}</div>
+            {u?.isAdmin&&<button onClick={()=>setView("admin")} style={{background:"transparent",color:NAVY,border:`1px solid ${NAVY}`,borderRadius:2,padding:"6px 12px",fontSize:10,letterSpacing:"0.15em",textTransform:"uppercase",cursor:"pointer",fontFamily:SANS,fontWeight:500}}>Analytics</button>}
+            <button onClick={logout} style={{background:"transparent",color:TEXT_LIGHT,border:`1px solid ${BORDER}`,borderRadius:2,padding:"6px 12px",fontSize:10,letterSpacing:"0.15em",textTransform:"uppercase",cursor:"pointer",fontFamily:SANS,fontWeight:500}}>Sign Out</button>
           </div>
         </div>
         <TickerBand user={u}/>
-        <div style={{maxWidth:1080,margin:"0 auto",padding:"36px 20px"}}>
-          <div style={{marginBottom:28}}>
-            <div style={{fontSize:10,color:GOLD,letterSpacing:"0.2em",fontFamily:"Georgia,serif",marginBottom:6}}>ASANGELS PORTFOLIO — APRIL 2026</div>
-            <div style={{fontSize:26,fontWeight:700,color:NAVY,fontFamily:"Georgia,serif",marginBottom:4}}>Active Deal Room</div>
-            <div style={{fontSize:12,color:"#666",maxWidth:580,lineHeight:1.6,fontFamily:"Georgia,serif"}}>Review documents 1–6 in order for the most complete diligence experience. Your access is tracked for GP analytics.</div>
+        <div style={{maxWidth:1080,margin:"0 auto",padding:"56px 20px 24px",width:"100%",boxSizing:"border-box",flex:1}}>
+          <div style={{marginBottom:36}}>
+            <div className="vcp-eyebrow" style={{marginBottom:14}}>Vigilance Capital Partners Portfolio — April 2026</div>
+            <div style={{fontFamily:SERIF,fontSize:38,fontWeight:500,color:NAVY,letterSpacing:"-0.015em",lineHeight:1.1,marginBottom:14}}>Active <em style={{fontStyle:"italic",color:GOLD,fontWeight:500}}>deals</em> under review</div>
+            <div style={{fontFamily:SANS,fontSize:14,color:TEXT_LIGHT,maxWidth:620,lineHeight:1.7}}>Review documents 1–6 in order for the most complete diligence experience. Your access is tracked for GP analytics.</div>
           </div>
-          <div style={{fontSize:10,fontWeight:700,color:NAVY,letterSpacing:"0.12em",fontFamily:"Georgia,serif",marginBottom:10}}>ACTIVE DILIGENCE ({active.length})</div>
+          <div className="vcp-eyebrow" style={{marginBottom:14,color:NAVY}}>Active Diligence ({active.length})</div>
           <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(310px,1fr))",gap:14,marginBottom:28}}>
             {active.map(d=>{
               const s=SM[d.stage]||SM["Active Diligence"];
-              return<div key={d.id} onClick={()=>handleDeal(d)} style={{background:"white",border:"1px solid #e5e2d9",borderRadius:10,padding:"18px 20px",cursor:"pointer",transition:"box-shadow 0.2s",boxShadow:"0 1px 4px rgba(0,0,0,0.05)"}} onMouseEnter={e=>e.currentTarget.style.boxShadow="0 6px 24px rgba(27,58,107,0.12)"} onMouseLeave={e=>e.currentTarget.style.boxShadow="0 1px 4px rgba(0,0,0,0.05)"}>
+              return<div key={d.id} onClick={()=>handleDeal(d)} style={{background:PAPER,border:`1px solid ${BORDER}`,borderRadius:4,padding:"22px 24px",cursor:"pointer",transition:"border-color 0.2s ease"}} onMouseEnter={e=>e.currentTarget.style.borderColor=GOLD} onMouseLeave={e=>e.currentTarget.style.borderColor=BORDER}>
                 <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:8}}>
-                  <div><div style={{fontSize:16,fontWeight:700,color:NAVY,fontFamily:"Georgia,serif",marginBottom:2}}>{d.name}</div><div style={{fontSize:11,color:"#6b6b6b",lineHeight:1.4,maxWidth:250}}>{d.tagline}</div></div>
+                  <div><div style={{fontSize:16,fontWeight:700,color:NAVY,fontFamily:SERIF,marginBottom:2}}>{d.name}</div><div style={{fontSize:11,color:TEXT_LIGHT,lineHeight:1.4,maxWidth:250}}>{d.tagline}</div></div>
                   <span style={{background:s.bg,color:s.color,fontSize:9,fontWeight:600,padding:"2px 7px",borderRadius:4,whiteSpace:"nowrap",marginLeft:8,flexShrink:0}}>{s.dot} {d.stage.split(" — ")[0]}</span>
                 </div>
-                <div style={{marginBottom:10}}><div style={{fontSize:10,color:"#888"}}>TAM: <strong style={{color:NAVY}}>{d.tam}</strong> · {d.raised.split(" · ")[0]}</div></div>
+                <div style={{marginBottom:10}}><div style={{fontSize:10,color:TEXT_LIGHT}}>TAM: <strong style={{color:NAVY}}>{d.tam}</strong> · {d.raised.split(" · ")[0]}</div></div>
                 <div style={{display:"flex",gap:3,flexWrap:"wrap"}}>
-                  {["V","I","T","A","L"].map(k=>{const m=VM[d.vital[k].score]||VM["Unknown"];return<span key={k} style={{background:m.bg,color:m.color,border:`1px solid ${m.color}33`,borderRadius:3,padding:"1px 5px",fontSize:9,fontWeight:700}}>{k}: {m.label.split(" ")[0]}</span>;})}
+                  {["V","I","T","A","L"].map(k=>{const m=VM[d.vital[k].score]||VM["Unknown"];return<span key={k} style={{background:m.bg,color:m.color,border:`1px solid ${m.color}33`,borderRadius:2,padding:"1px 5px",fontSize:9,fontWeight:700}}>{k}: {m.label.split(" ")[0]}</span>;})}
                 </div>
-                <div style={{marginTop:10,fontSize:10,color:GOLD,fontWeight:600,letterSpacing:"0.03em"}}>VIEW DEAL ROOM →</div>
+                <div style={{marginTop:14,fontSize:10,color:GOLD,fontWeight:500,letterSpacing:"0.32em",textTransform:"uppercase",fontFamily:SANS}}>View deal room →</div>
               </div>;
             })}
           </div>
-          <div style={{fontSize:10,fontWeight:700,color:"#888",letterSpacing:"0.12em",fontFamily:"Georgia,serif",marginBottom:10}}>DISCOVERY / WATCH LIST ({other.length})</div>
+          <div style={{fontSize:10,fontWeight:700,color:TEXT_LIGHT,letterSpacing:"0.12em",fontFamily:SERIF,marginBottom:10}}>DISCOVERY / WATCH LIST ({other.length})</div>
           <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(310px,1fr))",gap:14}}>
             {other.map(d=>{
               const s=SM[d.stage]||SM["Active Diligence"];
-              return<div key={d.id} onClick={()=>handleDeal(d)} style={{background:"white",border:"1px solid #e5e2d9",borderRadius:10,padding:"18px 20px",cursor:"pointer",opacity:0.85,transition:"opacity 0.15s"}} onMouseEnter={e=>e.currentTarget.style.opacity="1"} onMouseLeave={e=>e.currentTarget.style.opacity="0.85"}>
+              return<div key={d.id} onClick={()=>handleDeal(d)} style={{background:PAPER,border:`1px solid ${BORDER}`,borderRadius:4,padding:"20px 22px",cursor:"pointer",transition:"border-color 0.2s ease"}} onMouseEnter={e=>e.currentTarget.style.borderColor=GOLD} onMouseLeave={e=>e.currentTarget.style.borderColor=BORDER}>
                 <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:8}}>
-                  <div><div style={{fontSize:15,fontWeight:700,color:NAVY,fontFamily:"Georgia,serif",marginBottom:2}}>{d.name}</div><div style={{fontSize:11,color:"#6b6b6b",lineHeight:1.4,maxWidth:240}}>{d.tagline}</div></div>
+                  <div><div style={{fontSize:15,fontWeight:700,color:NAVY,fontFamily:SERIF,marginBottom:2}}>{d.name}</div><div style={{fontSize:11,color:TEXT_LIGHT,lineHeight:1.4,maxWidth:240}}>{d.tagline}</div></div>
                   <span style={{background:s.bg,color:s.color,fontSize:9,fontWeight:600,padding:"2px 7px",borderRadius:4,whiteSpace:"nowrap",marginLeft:8,flexShrink:0}}>{s.dot} {d.stage.split(" — ")[0]}</span>
                 </div>
                 <div style={{display:"flex",gap:3,flexWrap:"wrap",marginBottom:6}}>
-                  {["V","I","T","A","L"].map(k=>{const m=VM[d.vital[k].score]||VM["Unknown"];return<span key={k} style={{background:m.bg,color:m.color,border:`1px solid ${m.color}33`,borderRadius:3,padding:"1px 5px",fontSize:9,fontWeight:700}}>{k}: {m.label.split(" ")[0]}</span>;})}
+                  {["V","I","T","A","L"].map(k=>{const m=VM[d.vital[k].score]||VM["Unknown"];return<span key={k} style={{background:m.bg,color:m.color,border:`1px solid ${m.color}33`,borderRadius:2,padding:"1px 5px",fontSize:9,fontWeight:700}}>{k}: {m.label.split(" ")[0]}</span>;})}
                 </div>
                 <div style={{fontSize:10,color:GOLD,fontWeight:600}}>VIEW →</div>
               </div>;
@@ -378,44 +436,44 @@ export default function App(){
           <NewsFeedSection />
           <div style={{marginTop:32,marginBottom:8}}>
             <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:4}}>
-              <div style={{fontSize:10,color:"#C9922A",letterSpacing:"0.2em",fontFamily:"Georgia,serif",fontWeight:700}}>PUBLIC MARKETS WATCH — VIA GABRIEL KRANTZ / LIFESCI ADVISORS</div>
-              <div style={{flex:1,height:1,background:"#e5e2d9"}}/>
+              <div style={{fontSize:10,color:"#B8935D",letterSpacing:"0.2em",fontFamily:SERIF,fontWeight:700}}>PUBLIC MARKETS WATCH — VIA GABRIEL KRANTZ / LIFESCI ADVISORS</div>
+              <div style={{flex:1,height:1,background:"#E5E0D5"}}/>
             </div>
-            <div style={{fontSize:11,color:"#888",fontFamily:"Georgia,serif",marginBottom:16}}>Post-IPO C-suite exposure meetings facilitated by Gabriel Krantz (LifeSci Advisors). These are small-cap public companies — evaluated through the VITAL framework on public evidence. Not SPV investments.</div>
+            <div style={{fontSize:11,color:TEXT_LIGHT,fontFamily:SERIF,marginBottom:16}}>Post-IPO C-suite exposure meetings facilitated by Gabriel Krantz (LifeSci Advisors). These are small-cap public companies — evaluated through the VITAL framework on public evidence. Not SPV investments.</div>
             {pubSel ? (
-              <div style={{background:"white",border:"1px solid #e5e2d9",borderRadius:12,padding:"24px 28px"}}>
-                <button onClick={()=>setPubSel(null)} style={{background:"#EBF1F8",color:"#1B3A6B",border:"none",borderRadius:5,padding:"4px 12px",fontSize:10,cursor:"pointer",fontFamily:"Georgia,serif",marginBottom:16}}>← Back to Public Watch</button>
+              <div style={{background:PAPER,border:"1px solid #E5E0D5",borderRadius:4,padding:"24px 28px"}}>
+                <button onClick={()=>setPubSel(null)} style={{background:CREAM_DEEP,color:"#0F1F3D",border:"none",borderRadius:2,padding:"4px 12px",fontSize:10,cursor:"pointer",fontFamily:SERIF,marginBottom:16}}>← Back to Public Watch</button>
                 <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:4}}>
-                  <div style={{fontSize:28,fontWeight:700,color:"#1B3A6B",fontFamily:"Georgia,serif"}}>{pubSel.ticker}</div>
-                  <div style={{fontSize:16,color:"#888",fontFamily:"Georgia,serif"}}>{pubSel.name}</div>
-                  <span style={{background:"#EBF1F8",color:"#1B3A6B",fontSize:9,fontWeight:700,padding:"3px 8px",borderRadius:4,fontFamily:"Georgia,serif"}}>{pubSel.exchange}</span>
+                  <div style={{fontSize:28,fontWeight:700,color:"#0F1F3D",fontFamily:SERIF}}>{pubSel.ticker}</div>
+                  <div style={{fontSize:16,color:TEXT_LIGHT,fontFamily:SERIF}}>{pubSel.name}</div>
+                  <span style={{background:CREAM_DEEP,color:"#0F1F3D",fontSize:9,fontWeight:700,padding:"3px 8px",borderRadius:4,fontFamily:SERIF}}>{pubSel.exchange}</span>
                 </div>
-                <div style={{fontSize:12,color:"#555",fontFamily:"Georgia,serif",marginBottom:16,lineHeight:1.5}}>{pubSel.tagline}</div>
+                <div style={{fontSize:12,color:TEXT,fontFamily:SERIF,marginBottom:16,lineHeight:1.5}}>{pubSel.tagline}</div>
                 <div style={{display:"flex",gap:20,marginBottom:16,flexWrap:"wrap"}}>
                   {[["Market Cap",pubSel.marketCap],["Cash",pubSel.cash],["Analysts",pubSel.analysts],["Met With",pubSel.metWith]].map(([l,v])=>(
-                    <div key={l}><div style={{fontSize:9,color:"#C9922A",letterSpacing:"0.1em",fontFamily:"Georgia,serif"}}>{l}</div><div style={{fontSize:12,fontWeight:600,color:"#1B3A6B",fontFamily:"Georgia,serif",maxWidth:320}}>{v}</div></div>
+                    <div key={l}><div style={{fontSize:9,color:"#B8935D",letterSpacing:"0.1em",fontFamily:SERIF}}>{l}</div><div style={{fontSize:12,fontWeight:600,color:"#0F1F3D",fontFamily:SERIF,maxWidth:320}}>{v}</div></div>
                   ))}
                 </div>
-                <div style={{fontSize:10,color:"#C9922A",letterSpacing:"0.15em",fontFamily:"Georgia,serif",marginBottom:8}}>KEY ASSET & CLINICAL STAGE</div>
-                <div style={{fontSize:12,color:"#333",fontFamily:"Georgia,serif",lineHeight:1.6,marginBottom:16,background:"#fafaf8",padding:"12px 16px",borderRadius:7,border:"1px solid #f0ede6"}}>{pubSel.keyAsset}</div>
-                <div style={{fontSize:10,color:"#C9922A",letterSpacing:"0.15em",fontFamily:"Georgia,serif",marginBottom:8}}>NEAR-TERM CATALYSTS</div>
+                <div style={{fontSize:10,color:"#B8935D",letterSpacing:"0.15em",fontFamily:SERIF,marginBottom:8}}>KEY ASSET & CLINICAL STAGE</div>
+                <div style={{fontSize:12,color:TEXT,fontFamily:SERIF,lineHeight:1.6,marginBottom:16,background:"#F5F1E8",padding:"12px 16px",borderRadius:2,border:"1px solid #EFEAE0"}}>{pubSel.keyAsset}</div>
+                <div style={{fontSize:10,color:"#B8935D",letterSpacing:"0.15em",fontFamily:SERIF,marginBottom:8}}>NEAR-TERM CATALYSTS</div>
                 <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:16}}>
                   {pubSel.catalysts.map((c,i)=>(
-                    <span key={i} style={{background:"#EBF1F8",color:"#1B3A6B",fontSize:10,padding:"4px 10px",borderRadius:5,fontFamily:"Georgia,serif"}}>{c}</span>
+                    <span key={i} style={{background:CREAM_DEEP,color:"#0F1F3D",fontSize:10,padding:"4px 10px",borderRadius:2,fontFamily:SERIF}}>{c}</span>
                   ))}
                 </div>
-                <div style={{fontSize:10,color:"#C9922A",letterSpacing:"0.15em",fontFamily:"Georgia,serif",marginBottom:10}}>VITAL ASSESSMENT</div>
+                <div style={{fontSize:10,color:"#B8935D",letterSpacing:"0.15em",fontFamily:SERIF,marginBottom:10}}>VITAL ASSESSMENT</div>
                 <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(240px,1fr))",gap:8}}>
                   {Object.entries(pubSel.vital).map(([k,v])=>{
-                    const c={Strong:"#166534",Developing:"#92400E","Very Strong":"#1e40af",Weak:"#7F1D1D",Unknown:"#555"};
-                    const b={Strong:"#EAF3DE",Developing:"#FAEEDA","Very Strong":"#EBF1F8",Weak:"#FCEBEB",Unknown:"#f0ede6"};
+                    const c={Strong:NAVY,Developing:"#7A4E2E","Very Strong":NAVY,Weak:"#7A4E2E",Unknown:TEXT};
+                    const b={Strong:GOLD_PALE,Developing:"#F5E8DC","Very Strong":CREAM_DEEP,Weak:"#F5E8DC",Unknown:"#EFEAE0"};
                     return(
-                      <div key={k} style={{background:"#fafaf8",borderRadius:7,padding:"12px 14px",border:"1px solid #f0ede6"}}>
+                      <div key={k} style={{background:"#F5F1E8",borderRadius:2,padding:"12px 14px",border:"1px solid #EFEAE0"}}>
                         <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:4}}>
-                          <span style={{fontSize:12,fontWeight:700,color:"#1B3A6B",fontFamily:"Georgia,serif"}}>{k}</span>
-                          <span style={{background:b[v.score]||"#f0ede6",color:c[v.score]||"#555",fontSize:9,fontWeight:700,padding:"1px 6px",borderRadius:3,fontFamily:"Georgia,serif"}}>{v.score}</span>
+                          <span style={{fontSize:12,fontWeight:700,color:"#0F1F3D",fontFamily:SERIF}}>{k}</span>
+                          <span style={{background:b[v.score]||"#EFEAE0",color:c[v.score]||TEXT,fontSize:9,fontWeight:700,padding:"1px 6px",borderRadius:2,fontFamily:SERIF}}>{v.score}</span>
                         </div>
-                        <div style={{fontSize:11,color:"#555",fontFamily:"Georgia,serif",lineHeight:1.4}}>{v.summary}</div>
+                        <div style={{fontSize:11,color:TEXT,fontFamily:SERIF,lineHeight:1.4}}>{v.summary}</div>
                       </div>
                     );
                   })}
@@ -428,6 +486,7 @@ export default function App(){
             )}
           </div>
         </div>
+        <Footer/>
       </div>
     );
   }
@@ -436,53 +495,53 @@ export default function App(){
   if(view==="deal"&&sel){
     const s=SM[sel.stage]||SM["Active Diligence"];
     return(
-      <div style={{minHeight:"100vh",background:"#f8f7f4"}}>
-        <div style={{background:NAVY,padding:"12px 28px",display:"flex",alignItems:"center",gap:12,position:"sticky",top:0,zIndex:10,boxShadow:"0 2px 12px rgba(0,0,0,0.2)"}}>
-          <button onClick={()=>setView("room")} style={{background:"rgba(255,255,255,0.08)",color:"#8fa8c8",border:"1px solid rgba(255,255,255,0.15)",borderRadius:5,padding:"4px 12px",fontSize:10,cursor:"pointer",fontFamily:"Georgia,serif"}}>← Deal Room</button>
-          <div style={{fontSize:17,fontWeight:700,color:"white",fontFamily:"Georgia,serif"}}>{sel.name}</div>
-          <span style={{background:s.bg,color:s.color,fontSize:9,fontWeight:600,padding:"2px 7px",borderRadius:4}}>{s.dot} {sel.stage}</span>
+      <div style={{minHeight:"100vh",background:CREAM,display:"flex",flexDirection:"column"}}>
+        <div style={{background:"rgba(250,248,243,0.85)",backdropFilter:"blur(20px)",WebkitBackdropFilter:"blur(20px)",padding:"14px 28px",display:"flex",alignItems:"center",gap:14,position:"sticky",top:0,zIndex:10,borderBottom:`1px solid ${BORDER}`}}>
+          <button onClick={()=>setView("room")} style={{background:"transparent",color:TEXT_LIGHT,border:`1px solid ${BORDER}`,borderRadius:2,padding:"6px 14px",fontSize:10,letterSpacing:"0.15em",textTransform:"uppercase",cursor:"pointer",fontFamily:SANS,fontWeight:500}}>← Deal Room</button>
+          <div style={{fontFamily:SERIF,fontSize:18,fontWeight:500,color:NAVY,letterSpacing:"-0.01em"}}>{sel.name}</div>
+          <span style={{background:s.bg,color:s.color,fontSize:9,fontWeight:500,padding:"3px 10px",borderRadius:2,letterSpacing:"0.1em",textTransform:"uppercase",fontFamily:SANS}}>{sel.stage}</span>
         </div>
-        <div style={{maxWidth:860,margin:"0 auto",padding:"30px 20px"}}>
+        <div style={{maxWidth:860,margin:"0 auto",padding:"40px 20px 24px",width:"100%",boxSizing:"border-box",flex:1}}>
           {/* Company Header */}
-          <div style={{background:"white",border:"1px solid #e5e2d9",borderRadius:12,padding:"24px 28px",marginBottom:16}}>
-            <div style={{fontSize:10,color:GOLD,letterSpacing:"0.2em",marginBottom:6,fontFamily:"Georgia,serif"}}>COMPANY OVERVIEW</div>
-            <div style={{fontSize:24,fontWeight:700,color:NAVY,fontFamily:"Georgia,serif",marginBottom:4}}>{sel.name}</div>
-            <div style={{fontSize:13,color:"#555",fontFamily:"Georgia,serif",marginBottom:14,lineHeight:1.5}}>{sel.tagline}</div>
+          <div style={{background:PAPER,border:"1px solid #E5E0D5",borderRadius:4,padding:"24px 28px",marginBottom:16}}>
+            <div style={{fontSize:10,color:GOLD,letterSpacing:"0.2em",marginBottom:6,fontFamily:SERIF}}>COMPANY OVERVIEW</div>
+            <div style={{fontSize:24,fontWeight:700,color:NAVY,fontFamily:SERIF,marginBottom:4}}>{sel.name}</div>
+            <div style={{fontSize:13,color:TEXT,fontFamily:SERIF,marginBottom:14,lineHeight:1.5}}>{sel.tagline}</div>
             <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
               {[["Founder",sel.founder],["Location",sel.location],["Capital Raised",sel.raised],["Current Round",sel.round]].map(([k,v])=>(
-                <div key={k}><div style={{fontSize:9,color:"#999",letterSpacing:"0.1em",marginBottom:1,fontFamily:"Georgia,serif"}}>{k}</div><div style={{fontSize:11,color:"#333",fontFamily:"Georgia,serif",lineHeight:1.4}}>{v}</div></div>
+                <div key={k}><div style={{fontSize:9,color:TEXT_MUTED,letterSpacing:"0.1em",marginBottom:1,fontFamily:SERIF}}>{k}</div><div style={{fontSize:11,color:TEXT,fontFamily:SERIF,lineHeight:1.4}}>{v}</div></div>
               ))}
             </div>
           </div>
 
           {/* Market + Competitors */}
-          <div style={{background:"white",border:"1px solid #e5e2d9",borderRadius:12,padding:"22px 28px",marginBottom:16}}>
-            <div style={{fontSize:10,color:GOLD,letterSpacing:"0.2em",marginBottom:14,fontFamily:"Georgia,serif"}}>MARKET OPPORTUNITY</div>
+          <div style={{background:PAPER,border:"1px solid #E5E0D5",borderRadius:4,padding:"22px 28px",marginBottom:16}}>
+            <div style={{fontSize:10,color:GOLD,letterSpacing:"0.2em",marginBottom:14,fontFamily:SERIF}}>MARKET OPPORTUNITY</div>
             <div style={{display:"grid",gridTemplateColumns:"120px 1fr",gap:20,marginBottom:16}}>
-              <div><div style={{fontSize:34,fontWeight:700,color:NAVY,fontFamily:"Georgia,serif"}}>{sel.tam}</div><div style={{fontSize:10,color:"#999",fontFamily:"Georgia,serif"}}>TAM</div></div>
-              <div><div style={{fontSize:12,color:"#444",fontFamily:"Georgia,serif",lineHeight:1.6,marginBottom:6}}>{sel.tamNote}</div><div style={{fontSize:11,color:NAVY,fontFamily:"Georgia,serif",fontWeight:600}}>{sel.projections}</div></div>
+              <div><div style={{fontSize:34,fontWeight:700,color:NAVY,fontFamily:SERIF}}>{sel.tam}</div><div style={{fontSize:10,color:TEXT_MUTED,fontFamily:SERIF}}>TAM</div></div>
+              <div><div style={{fontSize:12,color:TEXT,fontFamily:SERIF,lineHeight:1.6,marginBottom:6}}>{sel.tamNote}</div><div style={{fontSize:11,color:NAVY,fontFamily:SERIF,fontWeight:600}}>{sel.projections}</div></div>
             </div>
-            <div style={{borderTop:"1px solid #f0ede6",paddingTop:14}}>
-              <div style={{fontSize:10,color:GOLD,letterSpacing:"0.15em",marginBottom:10,fontFamily:"Georgia,serif"}}>KEY PLAYERS</div>
+            <div style={{borderTop:"1px solid #EFEAE0",paddingTop:14}}>
+              <div style={{fontSize:10,color:GOLD,letterSpacing:"0.15em",marginBottom:10,fontFamily:SERIF}}>KEY PLAYERS</div>
               {sel.competitors.map((c,i)=>(
                 <div key={i} style={{display:"flex",gap:10,alignItems:"flex-start",marginBottom:7}}>
-                  <span style={{fontSize:9,fontWeight:700,color:NAVY,padding:"2px 6px",background:"#EBF1F8",borderRadius:3,whiteSpace:"nowrap",marginTop:2,fontFamily:"Georgia,serif",flexShrink:0}}>{c.name}</span>
-                  <span style={{fontSize:11,color:"#666",fontFamily:"Georgia,serif",lineHeight:1.4}}>{c.note}</span>
+                  <span style={{fontSize:9,fontWeight:700,color:NAVY,padding:"2px 6px",background:CREAM_DEEP,borderRadius:2,whiteSpace:"nowrap",marginTop:2,fontFamily:SERIF,flexShrink:0}}>{c.name}</span>
+                  <span style={{fontSize:11,color:TEXT_LIGHT,fontFamily:SERIF,lineHeight:1.4}}>{c.note}</span>
                 </div>
               ))}
             </div>
           </div>
 
           {/* VITAL */}
-          <div style={{background:"white",border:"1px solid #e5e2d9",borderRadius:12,padding:"22px 28px",marginBottom:16}}>
-            <div style={{fontSize:10,color:GOLD,letterSpacing:"0.2em",marginBottom:18,fontFamily:"Georgia,serif"}}>VITAL FRAMEWORK ASSESSMENT</div>
+          <div style={{background:PAPER,border:"1px solid #E5E0D5",borderRadius:4,padding:"22px 28px",marginBottom:16}}>
+            <div style={{fontSize:10,color:GOLD,letterSpacing:"0.2em",marginBottom:18,fontFamily:SERIF}}>VITAL FRAMEWORK ASSESSMENT</div>
             {[["V","Value"],["I","Impact"],["T","Traction"],["A","Adoption"],["L","Landscape"]].map(([k,lbl],i)=>{
               const v=sel.vital[k];const m=VM[v.score]||VM["Unknown"];
-              return<div key={k} style={{display:"grid",gridTemplateColumns:"28px 120px 120px 1fr",gap:12,alignItems:"start",padding:"12px 0",borderBottom:i<4?"1px solid #f5f3ee":"none"}}>
-                <div style={{fontSize:20,fontWeight:700,color:NAVY,fontFamily:"Georgia,serif"}}>{k}</div>
-                <div style={{fontSize:12,fontWeight:600,color:NAVY,fontFamily:"Georgia,serif",paddingTop:2}}>{lbl}</div>
+              return<div key={k} style={{display:"grid",gridTemplateColumns:"28px 120px 120px 1fr",gap:12,alignItems:"start",padding:"12px 0",borderBottom:i<4?"1px solid #EFEAE0":"none"}}>
+                <div style={{fontSize:20,fontWeight:700,color:NAVY,fontFamily:SERIF}}>{k}</div>
+                <div style={{fontSize:12,fontWeight:600,color:NAVY,fontFamily:SERIF,paddingTop:2}}>{lbl}</div>
                 <div style={{paddingTop:2}}><ScorePill score={v.score}/></div>
-                <div style={{fontSize:11,color:"#555",fontFamily:"Georgia,serif",lineHeight:1.5}}>{v.summary}</div>
+                <div style={{fontSize:11,color:TEXT,fontFamily:SERIF,lineHeight:1.5}}>{v.summary}</div>
               </div>;
             })}
           </div>
@@ -490,39 +549,40 @@ export default function App(){
           {sel.timeline && <VettingTimeline timeline={sel.timeline} />}
 
           {/* Documents */}
-          <div style={{background:"white",border:`2px solid ${NAVY}`,borderRadius:12,padding:"22px 28px",marginBottom:16}}>
+          <div style={{background:PAPER,border:`2px solid ${NAVY}`,borderRadius:4,padding:"22px 28px",marginBottom:16}}>
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}>
               <div>
-                <div style={{fontSize:10,color:GOLD,letterSpacing:"0.2em",fontFamily:"Georgia,serif",marginBottom:3}}>DEAL DOCUMENTS — ACCESS IN ORDER</div>
-                <div style={{fontSize:11,color:"#666",fontFamily:"Georgia,serif"}}>Each document click is logged for GP analytics. Proceed 1 → 6.</div>
+                <div style={{fontSize:10,color:GOLD,letterSpacing:"0.2em",fontFamily:SERIF,marginBottom:3}}>DEAL DOCUMENTS — ACCESS IN ORDER</div>
+                <div style={{fontSize:11,color:TEXT_LIGHT,fontFamily:SERIF}}>Each document click is logged for GP analytics. Proceed 1 → 6.</div>
               </div>
-              <div style={{fontSize:11,color:"#999",fontFamily:"Georgia,serif"}}>{Object.keys(docAcc).length}/6 accessed</div>
+              <div style={{fontSize:11,color:TEXT_MUTED,fontFamily:SERIF}}>{Object.keys(docAcc).length}/6 accessed</div>
             </div>
-            {sel.pitchDeck&&<div onClick={()=>{setDocAcc(p=>({...p,pitch:true}));if(u&&sel)track({userId:u.id,userName:u.name,type:"doc",dealId:sel.id,dealName:sel.name,docIdx:0,docName:sel.pitchDeck.name});window.open(sel.pitchDeck.url,"_blank");}} style={{display:"flex",alignItems:"center",gap:14,padding:"12px 16px",borderRadius:8,border:`1px solid ${docAcc["pitch"]?"#C9922A44":"#e5e2d9"}`,background:docAcc["pitch"]?"#FDF8EE":"#fafaf8",cursor:"pointer",marginBottom:8,transition:"all 0.15s"}} onMouseEnter={e=>e.currentTarget.style.background="#f0ede6"} onMouseLeave={e=>e.currentTarget.style.background=docAcc["pitch"]?"#FDF8EE":"#fafaf8"}><div style={{width:30,height:30,borderRadius:6,background:docAcc["pitch"]?GOLD:NAVY,color:"white",display:"flex",alignItems:"center",justifyContent:"center",fontSize:13,fontWeight:700,fontFamily:"Georgia,serif",flexShrink:0}}>0</div><div style={{flex:1}}><div style={{fontSize:12,fontWeight:600,color:NAVY,fontFamily:"Georgia,serif"}}>{sel.pitchDeck.name}</div><div style={{fontSize:10,color:"#888",fontFamily:"Georgia,serif"}}>{sel.pitchDeck.sub}</div></div>{docAcc["pitch"]?<span style={{fontSize:10,color:GOLD,fontWeight:600,fontFamily:"Georgia,serif"}}>ACCESSED ✓</span>:<span style={{fontSize:10,color:"#bbb",fontFamily:"Georgia,serif"}}>→ Open</span>}</div>}
+            {sel.pitchDeck&&<div onClick={()=>{setDocAcc(p=>({...p,pitch:true}));if(u&&sel)track({userId:u.id,userName:u.name,type:"doc",dealId:sel.id,dealName:sel.name,docIdx:0,docName:sel.pitchDeck.name});window.open(sel.pitchDeck.url,"_blank");}} style={{display:"flex",alignItems:"center",gap:14,padding:"12px 16px",borderRadius:2,border:`1px solid ${docAcc["pitch"]?"#B8935D44":"#E5E0D5"}`,background:docAcc["pitch"]?CREAM_DEEP:"#F5F1E8",cursor:"pointer",marginBottom:8,transition:"all 0.15s"}} onMouseEnter={e=>e.currentTarget.style.background="#EFEAE0"} onMouseLeave={e=>e.currentTarget.style.background=docAcc["pitch"]?CREAM_DEEP:"#F5F1E8"}><div style={{width:30,height:30,borderRadius:2,background:docAcc["pitch"]?GOLD:NAVY,color:CREAM,display:"flex",alignItems:"center",justifyContent:"center",fontSize:13,fontWeight:700,fontFamily:SERIF,flexShrink:0}}>0</div><div style={{flex:1}}><div style={{fontSize:12,fontWeight:600,color:NAVY,fontFamily:SERIF}}>{sel.pitchDeck.name}</div><div style={{fontSize:10,color:TEXT_LIGHT,fontFamily:SERIF}}>{sel.pitchDeck.sub}</div></div>{docAcc["pitch"]?<span style={{fontSize:10,color:GOLD,fontWeight:600,fontFamily:SERIF}}>ACCESSED ✓</span>:<span style={{fontSize:10,color:TEXT_MUTED,fontFamily:SERIF}}>→ Open</span>}</div>}
             {DOCS.map((doc,i)=>{
               const acc=!!docAcc[i];
-              return<div key={i} onClick={()=>handleDoc(i,doc.name)} style={{display:"flex",alignItems:"center",gap:14,padding:"12px 16px",borderRadius:8,border:`1px solid ${acc?"#C9922A44":"#e5e2d9"}`,background:acc?"#FDF8EE":"#fafaf8",cursor:"pointer",marginBottom:8,transition:"all 0.15s"}} onMouseEnter={e=>e.currentTarget.style.background="#f0ede6"} onMouseLeave={e=>e.currentTarget.style.background=acc?"#FDF8EE":"#fafaf8"}>
-                <div style={{width:30,height:30,borderRadius:6,background:acc?GOLD:NAVY,color:"white",display:"flex",alignItems:"center",justifyContent:"center",fontSize:13,fontWeight:700,fontFamily:"Georgia,serif",flexShrink:0}}>{doc.n}</div>
-                <div style={{flex:1}}><div style={{fontSize:12,fontWeight:600,color:NAVY,fontFamily:"Georgia,serif"}}>{doc.name}</div><div style={{fontSize:10,color:"#888",fontFamily:"Georgia,serif"}}>{doc.sub}</div></div>
-                {acc?<span style={{fontSize:10,color:GOLD,fontWeight:600,fontFamily:"Georgia,serif"}}>ACCESSED ✓</span>:<span style={{fontSize:10,color:"#bbb",fontFamily:"Georgia,serif"}}>→ Open</span>}
+              return<div key={i} onClick={()=>handleDoc(i,doc.name)} style={{display:"flex",alignItems:"center",gap:14,padding:"12px 16px",borderRadius:2,border:`1px solid ${acc?"#B8935D44":"#E5E0D5"}`,background:acc?CREAM_DEEP:"#F5F1E8",cursor:"pointer",marginBottom:8,transition:"all 0.15s"}} onMouseEnter={e=>e.currentTarget.style.background="#EFEAE0"} onMouseLeave={e=>e.currentTarget.style.background=acc?CREAM_DEEP:"#F5F1E8"}>
+                <div style={{width:30,height:30,borderRadius:2,background:acc?GOLD:NAVY,color:CREAM,display:"flex",alignItems:"center",justifyContent:"center",fontSize:13,fontWeight:700,fontFamily:SERIF,flexShrink:0}}>{doc.n}</div>
+                <div style={{flex:1}}><div style={{fontSize:12,fontWeight:600,color:NAVY,fontFamily:SERIF}}>{doc.name}</div><div style={{fontSize:10,color:TEXT_LIGHT,fontFamily:SERIF}}>{doc.sub}</div></div>
+                {acc?<span style={{fontSize:10,color:GOLD,fontWeight:600,fontFamily:SERIF}}>ACCESSED ✓</span>:<span style={{fontSize:10,color:TEXT_MUTED,fontFamily:SERIF}}>→ Open</span>}
               </div>;
             })}
           </div>
 
           {/* WhatsApp Generator (admin only) */}
           {u?.isAdmin&&(
-            <div style={{background:"#f0fdf4",border:"1px solid #86efac",borderRadius:12,padding:"22px 28px"}}>
+            <div style={{background:CREAM_DEEP,border:`1px solid ${BORDER}`,borderRadius:4,padding:"22px 28px"}}>
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:showWA?14:0}}>
-                <div><div style={{fontSize:10,color:"#166534",letterSpacing:"0.2em",fontFamily:"Georgia,serif",marginBottom:2}}>ADMIN — WHATSAPP POST GENERATOR</div><div style={{fontSize:11,color:"#555",fontFamily:"Georgia,serif"}}>Generate standardized WhatsApp group announcement for this deal</div></div>
+                <div><div className="vcp-eyebrow" style={{marginBottom:6}}>Admin — WhatsApp Post Generator</div><div style={{fontSize:12,color:TEXT_LIGHT,fontFamily:SANS}}>Generate standardized WhatsApp group announcement for this deal</div></div>
                 <div style={{display:"flex",gap:8}}>
-                  <button onClick={()=>setShowWA(p=>!p)} style={{background:"white",color:"#166534",border:"1px solid #86efac",borderRadius:5,padding:"6px 12px",fontSize:10,cursor:"pointer",fontFamily:"Georgia,serif",fontWeight:600}}>{showWA?"HIDE":"PREVIEW"}</button>
-                  <button onClick={copyWA} style={{background:copied?"#166534":GOLD,color:"white",border:"none",borderRadius:5,padding:"6px 12px",fontSize:10,cursor:"pointer",fontFamily:"Georgia,serif",fontWeight:600}}>{copied?"COPIED ✓":"COPY"}</button>
+                  <button onClick={()=>setShowWA(p=>!p)} className="vcp-btn-outline" style={{padding:"6px 14px",fontSize:10}}>{showWA?"Hide":"Preview"}</button>
+                  <button onClick={copyWA} className="vcp-btn-primary" style={{padding:"6px 14px",fontSize:10,background:copied?GOLD:NAVY,borderColor:copied?GOLD:NAVY}}>{copied?"Copied":"Copy"}</button>
                 </div>
               </div>
-              {showWA&&<pre style={{background:"white",border:"1px solid #d1fae5",borderRadius:8,padding:16,fontSize:10,fontFamily:"monospace",whiteSpace:"pre-wrap",lineHeight:1.7,color:"#333",maxHeight:360,overflowY:"auto",marginTop:14}}>{makeWAPost(sel)}</pre>}
+              {showWA&&<pre style={{background:PAPER,border:`1px solid ${BORDER_LIGHT}`,borderRadius:2,padding:16,fontSize:10,fontFamily:"ui-monospace, SFMono-Regular, Menlo, monospace",whiteSpace:"pre-wrap",lineHeight:1.7,color:TEXT,maxHeight:360,overflowY:"auto",marginTop:14}}>{makeWAPost(sel)}</pre>}
             </div>
           )}
         </div>
+        <Footer/>
       </div>
     );
   }
@@ -573,16 +633,16 @@ export default function App(){
     const totalTimeOnSite=ev.length>1?Math.round((Math.max(...ev.map(e=>e.ts))-Math.min(...ev.map(e=>e.ts)))/3600000*10)/10:0;
 
     return(
-      <div style={{minHeight:"100vh",background:"#f8f7f4"}}>
+      <div style={{minHeight:"100vh",background:CREAM,display:"flex",flexDirection:"column"}}>
         {/* Header */}
-        <div style={{background:NAVY,padding:"12px 28px",display:"flex",alignItems:"center",gap:12,position:"sticky",top:0,zIndex:10,boxShadow:"0 2px 12px rgba(0,0,0,0.2)"}}>
-          <button onClick={()=>setView("room")} style={{background:"rgba(255,255,255,0.08)",color:"#8fa8c8",border:"1px solid rgba(255,255,255,0.15)",borderRadius:5,padding:"4px 12px",fontSize:10,cursor:"pointer",fontFamily:"Georgia,serif"}}>← Deal Room</button>
-          <div style={{fontSize:17,fontWeight:700,color:"white",fontFamily:"Georgia,serif"}}>Admin Analytics</div>
+        <div style={{background:"rgba(250,248,243,0.85)",backdropFilter:"blur(20px)",WebkitBackdropFilter:"blur(20px)",padding:"14px 28px",display:"flex",alignItems:"center",gap:12,position:"sticky",top:0,zIndex:10,borderBottom:`1px solid ${BORDER}`,flexWrap:"wrap"}}>
+          <button onClick={()=>setView("room")} style={{background:"transparent",color:TEXT_LIGHT,border:`1px solid ${BORDER}`,borderRadius:2,padding:"6px 14px",fontSize:10,letterSpacing:"0.15em",textTransform:"uppercase",cursor:"pointer",fontFamily:SANS,fontWeight:500}}>← Deal Room</button>
+          <div style={{fontFamily:SERIF,fontSize:18,fontWeight:500,color:NAVY,letterSpacing:"-0.01em"}}>Admin <em style={{fontStyle:"italic",color:GOLD,fontWeight:500}}>Analytics</em></div>
           <div style={{flex:1}}/>
           {["overview","members","documents","activity","funnel"].map(tab=>(
-            <button key={tab} onClick={()=>setAdminTab(tab)} style={{background:adminTab===tab?GOLD:"rgba(255,255,255,0.07)",color:adminTab===tab?"white":"#8fa8c8",border:"none",borderRadius:5,padding:"5px 12px",fontSize:10,cursor:"pointer",fontFamily:"Georgia,serif",fontWeight:adminTab===tab?700:400,textTransform:"capitalize"}}>{tab}</button>
+            <button key={tab} onClick={()=>setAdminTab(tab)} style={{background:adminTab===tab?NAVY:"transparent",color:adminTab===tab?CREAM:TEXT_LIGHT,border:`1px solid ${adminTab===tab?NAVY:BORDER}`,borderRadius:2,padding:"6px 12px",fontSize:10,cursor:"pointer",fontFamily:SANS,fontWeight:500,letterSpacing:"0.15em",textTransform:"uppercase"}}>{tab}</button>
           ))}
-          <button onClick={logout} style={{background:"rgba(255,255,255,0.07)",color:"#8fa8c8",border:"1px solid rgba(255,255,255,0.15)",borderRadius:5,padding:"4px 10px",fontSize:10,cursor:"pointer",fontFamily:"Georgia,serif",marginLeft:8}}>Sign Out</button>
+          <button onClick={logout} style={{background:"transparent",color:TEXT_LIGHT,border:`1px solid ${BORDER}`,borderRadius:2,padding:"6px 12px",fontSize:10,letterSpacing:"0.15em",textTransform:"uppercase",cursor:"pointer",fontFamily:SANS,fontWeight:500,marginLeft:8}}>Sign Out</button>
         </div>
 
         <div style={{maxWidth:1240,margin:"0 auto",padding:"28px 20px"}}>
@@ -591,16 +651,16 @@ export default function App(){
           {adminTab==="overview"&&<>
             <div style={{display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:12,marginBottom:24}}>
               {[["Members",users.length,"unique investors"],["Logins",loginEvts.length,"total sessions"],["Deal Views",dealEvts.length,"total"],["Doc Opens",docEvts.length,"total"],["Hours on Site",totalTimeOnSite,"cumulative"]].map(([l,v,s])=>(
-                <div key={l} style={{background:"white",border:"1px solid #e5e2d9",borderRadius:10,padding:"16px 20px"}}>
-                  <div style={{fontSize:28,fontWeight:700,color:NAVY,fontFamily:"Georgia,serif"}}>{v}</div>
-                  <div style={{fontSize:12,fontWeight:600,color:NAVY,fontFamily:"Georgia,serif"}}>{l}</div>
-                  <div style={{fontSize:10,color:"#999",fontFamily:"Georgia,serif"}}>{s}</div>
+                <div key={l} style={{background:PAPER,border:"1px solid #E5E0D5",borderRadius:4,padding:"16px 20px"}}>
+                  <div style={{fontSize:28,fontWeight:700,color:NAVY,fontFamily:SERIF}}>{v}</div>
+                  <div style={{fontSize:12,fontWeight:600,color:NAVY,fontFamily:SERIF}}>{l}</div>
+                  <div style={{fontSize:10,color:TEXT_MUTED,fontFamily:SERIF}}>{s}</div>
                 </div>
               ))}
             </div>
 
-            <div style={{background:"white",border:"1px solid #e5e2d9",borderRadius:10,padding:"20px 24px",marginBottom:16}}>
-              <div style={{fontSize:10,color:GOLD,letterSpacing:"0.2em",fontFamily:"Georgia,serif",marginBottom:14}}>DEAL ENGAGEMENT RANKING</div>
+            <div style={{background:PAPER,border:"1px solid #E5E0D5",borderRadius:4,padding:"20px 24px",marginBottom:16}}>
+              <div style={{fontSize:10,color:GOLD,letterSpacing:"0.2em",fontFamily:SERIF,marginBottom:14}}>DEAL ENGAGEMENT RANKING</div>
               {[...DEALS].sort((a,b)=>docEvts.filter(e=>e.dealId===b.id).length-docEvts.filter(e=>e.dealId===a.id).length).map(d=>{
                 const views=dealEvts.filter(e=>e.dealId===d.id).length;
                 const opens=docEvts.filter(e=>e.dealId===d.id).length;
@@ -608,14 +668,14 @@ export default function App(){
                 const maxOpens=Math.max(1,...DEALS.map(x=>docEvts.filter(e=>e.dealId===x.id).length));
                 if(!views&&!opens)return null;
                 return(
-                  <div key={d.id} style={{display:"flex",alignItems:"center",gap:12,padding:"10px 0",borderBottom:"1px solid #f5f3ee",flexWrap:"wrap"}}>
-                    <div style={{flex:1,minWidth:140,fontSize:13,fontWeight:600,color:NAVY,fontFamily:"Georgia,serif"}}>{d.name}</div>
+                  <div key={d.id} style={{display:"flex",alignItems:"center",gap:12,padding:"10px 0",borderBottom:"1px solid #EFEAE0",flexWrap:"wrap"}}>
+                    <div style={{flex:1,minWidth:140,fontSize:13,fontWeight:600,color:NAVY,fontFamily:SERIF}}>{d.name}</div>
                     <div style={{display:"flex",gap:16,alignItems:"center"}}>
-                      <span style={{fontSize:11,color:"#888",fontFamily:"Georgia,serif"}}>{uniq} investors</span>
-                      <span style={{fontSize:11,color:"#888",fontFamily:"Georgia,serif"}}>{views} views</span>
-                      <span style={{fontSize:11,color:GOLD,fontWeight:700,fontFamily:"Georgia,serif"}}>{opens} doc opens</span>
+                      <span style={{fontSize:11,color:TEXT_LIGHT,fontFamily:SERIF}}>{uniq} investors</span>
+                      <span style={{fontSize:11,color:TEXT_LIGHT,fontFamily:SERIF}}>{views} views</span>
+                      <span style={{fontSize:11,color:GOLD,fontWeight:700,fontFamily:SERIF}}>{opens} doc opens</span>
                     </div>
-                    <div style={{width:160,background:"#f0ede6",borderRadius:4,height:6}}>
+                    <div style={{width:160,background:"#EFEAE0",borderRadius:4,height:6}}>
                       <div style={{width:`${(opens/maxOpens)*100}%`,background:GOLD,height:6,borderRadius:4,transition:"width 0.3s"}}/>
                     </div>
                   </div>
@@ -623,87 +683,87 @@ export default function App(){
               })}
             </div>
 
-            <div style={{background:"white",border:"1px solid #e5e2d9",borderRadius:10,padding:"20px 24px"}}>
-              <div style={{fontSize:10,color:GOLD,letterSpacing:"0.2em",fontFamily:"Georgia,serif",marginBottom:14}}>RECENT ACTIVITY — LAST 20 EVENTS</div>
+            <div style={{background:PAPER,border:"1px solid #E5E0D5",borderRadius:4,padding:"20px 24px"}}>
+              <div style={{fontSize:10,color:GOLD,letterSpacing:"0.2em",fontFamily:SERIF,marginBottom:14}}>RECENT ACTIVITY — LAST 20 EVENTS</div>
               {[...ev].reverse().slice(0,20).map((e,i)=>{
-                const bg={doc:"#EBF1F8",login:"#EAF3DE",deal_view:"#FAEEDA"}[e.type]||"#f0ede6";
-                const tc={doc:NAVY,login:"#166534",deal_view:"#92400E"}[e.type]||"#555";
+                const bg={doc:CREAM_DEEP,login:GOLD_PALE,deal_view:"#F5E8DC"}[e.type]||"#EFEAE0";
+                const tc={doc:NAVY,login:NAVY,deal_view:"#7A4E2E"}[e.type]||TEXT;
                 return(
-                  <div key={i} style={{display:"flex",alignItems:"center",gap:10,padding:"7px 0",borderBottom:"1px solid #fafaf8",flexWrap:"wrap"}}>
-                    <span style={{background:bg,color:tc,fontSize:9,fontWeight:700,padding:"2px 7px",borderRadius:3,fontFamily:"Georgia,serif",flexShrink:0}}>{e.type}</span>
-                    <span style={{fontSize:12,fontWeight:600,color:NAVY,fontFamily:"Georgia,serif",flexShrink:0}}>{e.userName||"—"}</span>
-                    {e.dealName&&<span style={{fontSize:11,color:"#666",fontFamily:"Georgia,serif"}}>{e.dealName}</span>}
-                    {e.docName&&<span style={{fontSize:11,color:GOLD,fontFamily:"Georgia,serif"}}>Doc {(e.docIdx||0)+1}: {e.docName}</span>}
-                    <span style={{fontSize:10,color:"#bbb",fontFamily:"Georgia,serif",marginLeft:"auto",flexShrink:0}}>{new Date(e.ts).toLocaleString()}</span>
+                  <div key={i} style={{display:"flex",alignItems:"center",gap:10,padding:"7px 0",borderBottom:"1px solid #F5F1E8",flexWrap:"wrap"}}>
+                    <span style={{background:bg,color:tc,fontSize:9,fontWeight:700,padding:"2px 7px",borderRadius:2,fontFamily:SERIF,flexShrink:0}}>{e.type}</span>
+                    <span style={{fontSize:12,fontWeight:600,color:NAVY,fontFamily:SERIF,flexShrink:0}}>{e.userName||"—"}</span>
+                    {e.dealName&&<span style={{fontSize:11,color:TEXT_LIGHT,fontFamily:SERIF}}>{e.dealName}</span>}
+                    {e.docName&&<span style={{fontSize:11,color:GOLD,fontFamily:SERIF}}>Doc {(e.docIdx||0)+1}: {e.docName}</span>}
+                    <span style={{fontSize:10,color:TEXT_MUTED,fontFamily:SERIF,marginLeft:"auto",flexShrink:0}}>{new Date(e.ts).toLocaleString()}</span>
                   </div>
                 );
               })}
-              {ev.length===0&&<div style={{fontSize:12,color:"#bbb",fontStyle:"italic",textAlign:"center",padding:24}}>No events yet.</div>}
+              {ev.length===0&&<div style={{fontSize:12,color:TEXT_MUTED,fontStyle:"italic",textAlign:"center",padding:24}}>No events yet.</div>}
             </div>
           </>}
 
           {/* MEMBERS TAB */}
           {adminTab==="members"&&<>
-            <div style={{background:"white",border:"1px solid #e5e2d9",borderRadius:10,padding:"20px 24px",marginBottom:16}}>
+            <div style={{background:PAPER,border:"1px solid #E5E0D5",borderRadius:4,padding:"20px 24px",marginBottom:16}}>
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}>
-                <div style={{fontSize:10,color:GOLD,letterSpacing:"0.2em",fontFamily:"Georgia,serif"}}>ALL MEMBERS — DETAILED PROFILES ({users.length} total)</div>
-                <input value={memberFilter} onChange={e=>setMemberFilter(e.target.value)} placeholder="Search by name..." style={{padding:"5px 10px",border:"1px solid #e5e2d9",borderRadius:6,fontSize:12,fontFamily:"Georgia,serif",color:NAVY,width:220,outline:"none"}}/>
+                <div style={{fontSize:10,color:GOLD,letterSpacing:"0.2em",fontFamily:SERIF}}>ALL MEMBERS — DETAILED PROFILES ({users.length} total)</div>
+                <input value={memberFilter} onChange={e=>setMemberFilter(e.target.value)} placeholder="Search by name..." style={{padding:"5px 10px",border:"1px solid #E5E0D5",borderRadius:2,fontSize:12,fontFamily:SERIF,color:NAVY,width:220,outline:"none"}}/>
               </div>
               {users.filter(uid=>!memberFilter||(userNames[uid]||"").toLowerCase().includes(memberFilter.toLowerCase())).map(uid=>{
                 const s=getMemberStats(uid);
                 return(
-                  <div key={uid} style={{padding:"18px 0",borderBottom:"1px solid #f5f3ee"}}>
+                  <div key={uid} style={{padding:"18px 0",borderBottom:"1px solid #EFEAE0"}}>
                     <div style={{display:"flex",alignItems:"flex-start",gap:20,flexWrap:"wrap"}}>
                       <div style={{minWidth:180}}>
-                        <div style={{fontSize:15,fontWeight:700,color:NAVY,fontFamily:"Georgia,serif"}}>{s.name}</div>
-                        <div style={{fontSize:10,color:"#999",fontFamily:"Georgia,serif",marginTop:2}}>Last active: {s.lastSeen?new Date(s.lastSeen).toLocaleString():"Never"}</div>
+                        <div style={{fontSize:15,fontWeight:700,color:NAVY,fontFamily:SERIF}}>{s.name}</div>
+                        <div style={{fontSize:10,color:TEXT_MUTED,fontFamily:SERIF,marginTop:2}}>Last active: {s.lastSeen?new Date(s.lastSeen).toLocaleString():"Never"}</div>
                       </div>
                       <div style={{display:"flex",gap:20,flexWrap:"wrap"}}>
                         {[["Logins",s.loginCount],["Deals Viewed",s.dealsViewed.length],["Docs Opened",s.docsOpened],["Avg Session",s.avgSession+"min"]].map(([l,v])=>(
-                          <div key={l}><div style={{fontSize:20,fontWeight:700,color:NAVY,fontFamily:"Georgia,serif"}}>{v}</div><div style={{fontSize:10,color:"#999",fontFamily:"Georgia,serif"}}>{l}</div></div>
+                          <div key={l}><div style={{fontSize:20,fontWeight:700,color:NAVY,fontFamily:SERIF}}>{v}</div><div style={{fontSize:10,color:TEXT_MUTED,fontFamily:SERIF}}>{l}</div></div>
                         ))}
                       </div>
                       <div style={{flex:1,minWidth:240}}>
-                        <div style={{fontSize:10,color:"#999",fontFamily:"Georgia,serif",marginBottom:4}}>DEALS ACCESSED</div>
+                        <div style={{fontSize:10,color:TEXT_MUTED,fontFamily:SERIF,marginBottom:4}}>DEALS ACCESSED</div>
                         <div style={{display:"flex",gap:4,flexWrap:"wrap"}}>
                           {s.dealsViewed.map(did=>{
                             const d=DEALS.find(x=>x.id===did);
                             const depth=s.dealProgress[did]?.size||0;
-                            return d?<span key={did} style={{background:"#EBF1F8",color:NAVY,fontSize:9,padding:"2px 7px",borderRadius:3,fontFamily:"Georgia,serif",fontWeight:600}}>{d.name} ({depth}/6)</span>:null;
+                            return d?<span key={did} style={{background:CREAM_DEEP,color:NAVY,fontSize:9,padding:"2px 7px",borderRadius:2,fontFamily:SERIF,fontWeight:600}}>{d.name} ({depth}/6)</span>:null;
                           })}
                         </div>
-                        {s.deepestDeal&&<div style={{fontSize:10,color:GOLD,fontFamily:"Georgia,serif",marginTop:4,fontWeight:600}}>Deepest engagement: {DEALS.find(x=>x.id===s.deepestDeal[0])?.name} — {s.deepestDeal[1].size} of 6 docs opened</div>}
+                        {s.deepestDeal&&<div style={{fontSize:10,color:GOLD,fontFamily:SERIF,marginTop:4,fontWeight:600}}>Deepest engagement: {DEALS.find(x=>x.id===s.deepestDeal[0])?.name} — {s.deepestDeal[1].size} of 6 docs opened</div>}
                       </div>
                     </div>
                   </div>
                 );
               })}
-              {users.length===0&&<div style={{fontSize:12,color:"#bbb",fontStyle:"italic",textAlign:"center",padding:24}}>No members have logged in yet.</div>}
+              {users.length===0&&<div style={{fontSize:12,color:TEXT_MUTED,fontStyle:"italic",textAlign:"center",padding:24}}>No members have logged in yet.</div>}
             </div>
           </>}
 
           {/* DOCUMENTS TAB */}
           {adminTab==="documents"&&<>
-            <div style={{background:"white",border:"1px solid #e5e2d9",borderRadius:10,padding:"20px 24px",marginBottom:16}}>
-              <div style={{fontSize:10,color:GOLD,letterSpacing:"0.2em",fontFamily:"Georgia,serif",marginBottom:18}}>DOCUMENT ENGAGEMENT — OPENS PER DOC PER DEAL</div>
+            <div style={{background:PAPER,border:"1px solid #E5E0D5",borderRadius:4,padding:"20px 24px",marginBottom:16}}>
+              <div style={{fontSize:10,color:GOLD,letterSpacing:"0.2em",fontFamily:SERIF,marginBottom:18}}>DOCUMENT ENGAGEMENT — OPENS PER DOC PER DEAL</div>
               {DEALS.map(d=>{
                 const anyOpens=docEvts.some(e=>e.dealId===d.id);
                 if(!anyOpens)return null;
                 return(
                   <div key={d.id} style={{marginBottom:20}}>
-                    <div style={{fontSize:13,fontWeight:700,color:NAVY,fontFamily:"Georgia,serif",marginBottom:8,paddingBottom:4,borderBottom:"2px solid #f0ede6"}}>{d.name}</div>
+                    <div style={{fontSize:13,fontWeight:700,color:NAVY,fontFamily:SERIF,marginBottom:8,paddingBottom:4,borderBottom:"2px solid #EFEAE0"}}>{d.name}</div>
                     <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
                       {DOCS.map((doc,i)=>{
                         const eng=getDocEngagement(d.id,i);
                         const hasLink=d.docUrls&&d.docUrls[i]&&d.docUrls[i]!=="#";
                         return(
-                          <div key={i} style={{background:eng.opens>0?"#EBF1F8":"#f8f7f4",border:`1px solid ${eng.opens>0?"#c5d8f0":"#e5e2d9"}`,borderRadius:7,padding:"10px 14px",minWidth:150}}>
-                            <div style={{fontSize:10,fontWeight:700,color:NAVY,fontFamily:"Georgia,serif"}}>{i+1}. {doc.name}</div>
-                            <div style={{fontSize:9,color:"#888",fontFamily:"Georgia,serif",marginBottom:4}}>{doc.sub}</div>
-                            <div style={{fontSize:18,fontWeight:700,color:eng.opens>0?NAVY:"#ccc",fontFamily:"Georgia,serif"}}>{eng.opens}</div>
-                            <div style={{fontSize:9,color:"#999",fontFamily:"Georgia,serif"}}>opens</div>
-                            {eng.users.length>0&&<div style={{fontSize:9,color:GOLD,fontFamily:"Georgia,serif",marginTop:3}}>{eng.users.slice(0,3).join(", ")}{eng.users.length>3?` +${eng.users.length-3}`:""}</div>}
-                            {!hasLink&&<div style={{fontSize:8,color:"#e5a000",fontFamily:"Georgia,serif",marginTop:2}}>⚠ Link pending</div>}
+                          <div key={i} style={{background:eng.opens>0?CREAM_DEEP:CREAM,border:`1px solid ${eng.opens>0?GOLD_LIGHT:BORDER}`,borderRadius:2,padding:"10px 14px",minWidth:150}}>
+                            <div style={{fontSize:10,fontWeight:700,color:NAVY,fontFamily:SERIF}}>{i+1}. {doc.name}</div>
+                            <div style={{fontSize:9,color:TEXT_LIGHT,fontFamily:SERIF,marginBottom:4}}>{doc.sub}</div>
+                            <div style={{fontSize:18,fontWeight:700,color:eng.opens>0?NAVY:TEXT_MUTED,fontFamily:SERIF}}>{eng.opens}</div>
+                            <div style={{fontSize:9,color:TEXT_MUTED,fontFamily:SERIF}}>opens</div>
+                            {eng.users.length>0&&<div style={{fontSize:9,color:GOLD,fontFamily:SERIF,marginTop:3}}>{eng.users.slice(0,3).join(", ")}{eng.users.length>3?` +${eng.users.length-3}`:""}</div>}
+                            {!hasLink&&<div style={{fontSize:8,color:GOLD,fontFamily:SERIF,marginTop:2}}>⚠ Link pending</div>}
                           </div>
                         );
                       })}
@@ -711,18 +771,18 @@ export default function App(){
                   </div>
                 );
               })}
-              {!docEvts.length&&<div style={{fontSize:12,color:"#bbb",fontStyle:"italic",textAlign:"center",padding:24}}>No document opens recorded yet.</div>}
+              {!docEvts.length&&<div style={{fontSize:12,color:TEXT_MUTED,fontStyle:"italic",textAlign:"center",padding:24}}>No document opens recorded yet.</div>}
             </div>
           </>}
 
           {/* ACTIVITY TAB */}
           {adminTab==="activity"&&<>
-            <div style={{background:"white",border:"1px solid #e5e2d9",borderRadius:10,padding:"20px 24px"}}>
-              <div style={{fontSize:10,color:GOLD,letterSpacing:"0.2em",fontFamily:"Georgia,serif",marginBottom:14}}>FULL ACCESS LOG — CHRONOLOGICAL (MOST RECENT FIRST)</div>
+            <div style={{background:PAPER,border:"1px solid #E5E0D5",borderRadius:4,padding:"20px 24px"}}>
+              <div style={{fontSize:10,color:GOLD,letterSpacing:"0.2em",fontFamily:SERIF,marginBottom:14}}>FULL ACCESS LOG — CHRONOLOGICAL (MOST RECENT FIRST)</div>
               <div style={{maxHeight:600,overflowY:"auto"}}>
-                <table style={{width:"100%",borderCollapse:"collapse",fontSize:11,fontFamily:"Georgia,serif"}}>
-                  <thead style={{position:"sticky",top:0,background:"white",zIndex:1}}>
-                    <tr style={{borderBottom:"2px solid #f0ede6"}}>
+                <table style={{width:"100%",borderCollapse:"collapse",fontSize:11,fontFamily:SERIF}}>
+                  <thead style={{position:"sticky",top:0,background:PAPER,zIndex:1}}>
+                    <tr style={{borderBottom:"2px solid #EFEAE0"}}>
                       {["Timestamp","Member","Event","Deal","Document","Session ID"].map(h=>(
                         <th key={h} style={{textAlign:"left",padding:"7px 10px",color:NAVY,fontWeight:700,fontSize:10,whiteSpace:"nowrap"}}>{h}</th>
                       ))}
@@ -730,20 +790,20 @@ export default function App(){
                   </thead>
                   <tbody>
                     {[...ev].reverse().slice(0,500).map((e,i)=>{
-                      const bg={doc:"#EBF1F8",login:"#EAF3DE",deal_view:"#FAEEDA"}[e.type]||"#f0ede6";
-                      const tc={doc:NAVY,login:"#166534",deal_view:"#92400E"}[e.type]||"#555";
+                      const bg={doc:CREAM_DEEP,login:GOLD_PALE,deal_view:"#F5E8DC"}[e.type]||"#EFEAE0";
+                      const tc={doc:NAVY,login:NAVY,deal_view:"#7A4E2E"}[e.type]||TEXT;
                       return(
-                        <tr key={i} style={{borderBottom:"1px solid #fafaf8",background:i%2===0?"white":"#fafaf8"}}>
-                          <td style={{padding:"6px 10px",color:"#666",fontSize:10,whiteSpace:"nowrap"}}>{new Date(e.ts).toLocaleString()}</td>
+                        <tr key={i} style={{borderBottom:"1px solid #F5F1E8",background:i%2===0?"white":"#F5F1E8"}}>
+                          <td style={{padding:"6px 10px",color:TEXT_LIGHT,fontSize:10,whiteSpace:"nowrap"}}>{new Date(e.ts).toLocaleString()}</td>
                           <td style={{padding:"6px 10px",fontWeight:600,color:NAVY}}>{e.userName||"—"}</td>
-                          <td style={{padding:"6px 10px"}}><span style={{background:bg,color:tc,padding:"1px 6px",borderRadius:3,fontSize:9,fontWeight:700}}>{e.type}</span></td>
-                          <td style={{padding:"6px 10px",color:"#555"}}>{e.dealName||"—"}</td>
+                          <td style={{padding:"6px 10px"}}><span style={{background:bg,color:tc,padding:"1px 6px",borderRadius:2,fontSize:9,fontWeight:700}}>{e.type}</span></td>
+                          <td style={{padding:"6px 10px",color:TEXT}}>{e.dealName||"—"}</td>
                           <td style={{padding:"6px 10px",color:GOLD,fontWeight:600}}>{e.docName?`${(e.docIdx||0)+1}. ${e.docName}`:"—"}</td>
-                          <td style={{padding:"6px 10px",color:"#bbb",fontSize:9}}>{(e.userId||"").substring(0,12)}</td>
+                          <td style={{padding:"6px 10px",color:TEXT_MUTED,fontSize:9}}>{(e.userId||"").substring(0,12)}</td>
                         </tr>
                       );
                     })}
-                    {ev.length===0&&<tr><td colSpan={6} style={{padding:24,textAlign:"center",color:"#bbb",fontStyle:"italic"}}>No events logged yet.</td></tr>}
+                    {ev.length===0&&<tr><td colSpan={6} style={{padding:24,textAlign:"center",color:TEXT_MUTED,fontStyle:"italic"}}>No events logged yet.</td></tr>}
                   </tbody>
                 </table>
               </div>
@@ -752,12 +812,12 @@ export default function App(){
 
           {/* FUNNEL TAB */}
           {adminTab==="funnel"&&<>
-            <div style={{background:"white",border:"1px solid #e5e2d9",borderRadius:10,padding:"20px 24px",marginBottom:16}}>
-              <div style={{fontSize:10,color:GOLD,letterSpacing:"0.2em",fontFamily:"Georgia,serif",marginBottom:18}}>DOCUMENT FUNNEL — UNIQUE INVESTORS PER DOCUMENT</div>
+            <div style={{background:PAPER,border:"1px solid #E5E0D5",borderRadius:4,padding:"20px 24px",marginBottom:16}}>
+              <div style={{fontSize:10,color:GOLD,letterSpacing:"0.2em",fontFamily:SERIF,marginBottom:18}}>DOCUMENT FUNNEL — UNIQUE INVESTORS PER DOCUMENT</div>
               <div style={{overflowX:"auto"}}>
-                <table style={{width:"100%",borderCollapse:"collapse",fontSize:11,fontFamily:"Georgia,serif",minWidth:700}}>
+                <table style={{width:"100%",borderCollapse:"collapse",fontSize:11,fontFamily:SERIF,minWidth:700}}>
                   <thead>
-                    <tr style={{borderBottom:"2px solid #f0ede6"}}>
+                    <tr style={{borderBottom:"2px solid #EFEAE0"}}>
                       <th style={{textAlign:"left",padding:"8px 10px",color:NAVY,fontWeight:700}}>Deal</th>
                       {DOCS.map(d=><th key={d.n} style={{textAlign:"center",padding:"8px 8px",color:NAVY,fontWeight:700,fontSize:10}}>{d.n}. {d.name.split(" ")[0]}</th>)}
                       <th style={{textAlign:"center",padding:"8px 8px",color:NAVY,fontWeight:700,fontSize:10}}>Full Read %</th>
@@ -769,15 +829,15 @@ export default function App(){
                       const mx=Math.max(1,...f);
                       const fullRead=f[5]>0&&f[0]>0?Math.round((f[5]/f[0])*100):0;
                       return(
-                        <tr key={d.id} style={{borderBottom:"1px solid #f5f3ee"}}>
+                        <tr key={d.id} style={{borderBottom:"1px solid #EFEAE0"}}>
                           <td style={{padding:"10px 10px",fontWeight:600,color:NAVY,fontSize:12}}>{d.name}</td>
                           {f.map((n,i)=>(
                             <td key={i} style={{textAlign:"center",padding:"10px 6px"}}>
-                              <div style={{display:"inline-flex",alignItems:"center",justifyContent:"center",background:n>0?`rgba(27,58,107,${0.15+0.7*(n/mx)})`:"#f5f3ee",color:n>0?"white":"#ccc",borderRadius:5,width:34,height:34,fontSize:13,fontWeight:700}}>{n}</div>
+                              <div style={{display:"inline-flex",alignItems:"center",justifyContent:"center",background:n>0?`rgba(15,31,61,${0.15+0.7*(n/mx)})`:BORDER_LIGHT,color:n>0?CREAM:TEXT_MUTED,borderRadius:2,width:34,height:34,fontSize:13,fontWeight:500,fontFamily:SERIF}}>{n}</div>
                             </td>
                           ))}
                           <td style={{textAlign:"center",padding:"10px 8px"}}>
-                            <span style={{background:fullRead>50?"#EAF3DE":fullRead>20?"#FAEEDA":"#f5f3ee",color:fullRead>50?"#166534":fullRead>20?"#92400E":"#999",fontSize:11,fontWeight:700,padding:"3px 10px",borderRadius:5}}>{fullRead}%</span>
+                            <span style={{background:fullRead>50?GOLD_PALE:fullRead>20?"#F5E8DC":"#EFEAE0",color:fullRead>50?NAVY:fullRead>20?"#7A4E2E":TEXT_MUTED,fontSize:11,fontWeight:700,padding:"3px 10px",borderRadius:2}}>{fullRead}%</span>
                           </td>
                         </tr>
                       );
@@ -789,6 +849,7 @@ export default function App(){
           </>}
 
         </div>
+        <Footer/>
       </div>
     );
   }

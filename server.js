@@ -109,5 +109,5 @@ app.get(/.*/, (_req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`ASAngels portal server running on port ${PORT}`);
+  console.log(`Vigilance Capital Partners portal server running on port ${PORT}`);
 });
