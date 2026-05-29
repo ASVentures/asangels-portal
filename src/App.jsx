@@ -292,6 +292,221 @@ function PublicDealCard({d, onClick}) {
   );
 }
 
+function VCPCalendar() {
+  const [events, setEvents] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [generatedAt, setGeneratedAt] = useState(null);
+  const [expandedIdx, setExpandedIdx] = useState(null);
+
+  useEffect(() => {
+    fetch('/api/calendar')
+      .then(r => r.json())
+      .then(data => {
+        const sorted = (data.events || []).sort(
+          (a, b) => new Date(a.start) - new Date(b.start)
+        );
+        setEvents(sorted);
+        setGeneratedAt(data.generated_at);
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
+  }, []);
+
+  const fmtDate = (iso) => {
+    if (!iso) return '—';
+    const d = new Date(iso);
+    return d.toLocaleDateString('en-US', {
+      weekday: 'short', month: 'short', day: 'numeric', year: 'numeric'
+    });
+  };
+
+  const fmtTime = (iso) => {
+    if (!iso || iso.length === 10) return 'All day';
+    const d = new Date(iso);
+    return d.toLocaleTimeString('en-US', {
+      hour: 'numeric', minute: '2-digit', timeZoneName: 'short',
+      timeZone: 'America/Los_Angeles'
+    });
+  };
+
+  const typeLabel = (t) => t === 'gp_internal' ? 'GP Internal' : 'Due Diligence';
+  const typeBg    = (t) => t === 'gp_internal' ? GOLD_PALE : CREAM_DEEP;
+  const typeColor = (t) => NAVY;
+
+  if (loading) return (
+    <div style={{padding:'24px', fontFamily:SANS, color:TEXT_MUTED}}>
+      Loading calendar...
+    </div>
+  );
+
+  return (
+    <div style={{maxWidth:900, margin:'0 auto'}}>
+      {/* Header */}
+      <div style={{marginBottom:24}}>
+        <div className="vcp-eyebrow">VCP Meeting Calendar — Next 30 Days</div>
+        <div style={{fontSize:24, fontWeight:600, color:NAVY, fontFamily:SERIF, marginBottom:4}}>
+          Upcoming <em style={{color:GOLD}}>Meetings</em>
+        </div>
+        {generatedAt && (
+          <div style={{fontSize:10, color:TEXT_MUTED, fontFamily:SANS}}>
+            Last synced: {new Date(generatedAt).toLocaleString('en-US', {
+              month:'short', day:'numeric', hour:'numeric', minute:'2-digit'
+            })}
+          </div>
+        )}
+      </div>
+
+      {events.length === 0 && (
+        <div style={{
+          background:CREAM_DEEP, border:`1px solid ${BORDER}`,
+          borderRadius:8, padding:'32px 24px', textAlign:'center',
+          fontFamily:SANS, color:TEXT_MUTED, fontSize:13
+        }}>
+          No VCP meetings in the next 30 days.
+          <div style={{fontSize:11, marginTop:6}}>
+            The agent syncs your shlaapy@gmail.com calendar every 2 hours.
+          </div>
+        </div>
+      )}
+
+      {events.map((ev, i) => {
+        const expanded = expandedIdx === i;
+        return (
+          <div key={i} style={{
+            background:PAPER, border:`1px solid ${BORDER}`,
+            borderRadius:10, marginBottom:12, overflow:'hidden',
+            transition:'box-shadow 0.15s',
+          }}>
+            {/* Event row */}
+            <div
+              onClick={() => setExpandedIdx(expanded ? null : i)}
+              style={{
+                display:'flex', alignItems:'flex-start', gap:16,
+                padding:'16px 20px', cursor:'pointer',
+              }}
+            >
+              {/* Date block */}
+              <div style={{
+                width:48, flexShrink:0, textAlign:'center',
+                background:NAVY, borderRadius:6, padding:'6px 4px',
+              }}>
+                <div style={{fontSize:10, color:'rgba(250,248,243,0.6)', fontFamily:SANS, letterSpacing:'0.1em'}}>
+                  {new Date(ev.start).toLocaleDateString('en-US',{month:'short'}).toUpperCase()}
+                </div>
+                <div style={{fontSize:22, fontWeight:700, color:'white', fontFamily:SERIF, lineHeight:1}}>
+                  {new Date(ev.start).getDate()}
+                </div>
+              </div>
+
+              {/* Content */}
+              <div style={{flex:1, minWidth:0}}>
+                <div style={{display:'flex', alignItems:'center', gap:8, marginBottom:4, flexWrap:'wrap'}}>
+                  <span style={{
+                    fontSize:9, fontWeight:600, padding:'2px 7px',
+                    background:typeBg(ev.meeting_type), color:typeColor(ev.meeting_type),
+                    border:`1px solid ${BORDER}`, borderRadius:3, fontFamily:SANS,
+                    letterSpacing:'0.08em'
+                  }}>{typeLabel(ev.meeting_type)}</span>
+                  {ev.company && (
+                    <span style={{fontSize:11, color:GOLD, fontFamily:SANS, fontWeight:600}}>
+                      {ev.company}
+                    </span>
+                  )}
+                </div>
+                <div style={{fontSize:15, fontWeight:600, color:NAVY, fontFamily:SERIF, marginBottom:3}}>
+                  {ev.title}
+                </div>
+                <div style={{fontSize:11, color:TEXT_LIGHT, fontFamily:SANS}}>
+                  {fmtDate(ev.start)} · {fmtTime(ev.start)}
+                  {ev.location && ` · ${ev.location.slice(0,60)}`}
+                </div>
+              </div>
+
+              {/* Actions */}
+              <div style={{display:'flex', gap:8, alignItems:'center', flexShrink:0}}>
+                {ev.meeting_link && (
+                  <a
+                    href={ev.meeting_link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={e => e.stopPropagation()}
+                    style={{
+                      background:NAVY, color:'white', borderRadius:4,
+                      padding:'5px 12px', fontSize:10, fontFamily:SANS,
+                      fontWeight:600, textDecoration:'none', letterSpacing:'0.05em'
+                    }}
+                  >JOIN</a>
+                )}
+                <div style={{fontSize:11, color:TEXT_MUTED, fontFamily:SANS}}>
+                  {expanded ? '▲' : '▼'}
+                </div>
+              </div>
+            </div>
+
+            {/* Expanded detail */}
+            {expanded && (
+              <div style={{
+                borderTop:`1px solid ${BORDER_LIGHT}`,
+                padding:'16px 20px 20px 84px',
+                background:CREAM_DEEP,
+              }}>
+                {ev.description && (
+                  <div style={{marginBottom:12}}>
+                    <div style={{fontSize:9, color:GOLD, letterSpacing:'0.2em', fontFamily:SANS, marginBottom:4}}>
+                      DESCRIPTION
+                    </div>
+                    <div style={{fontSize:12, color:TEXT, fontFamily:SANS, lineHeight:1.6, whiteSpace:'pre-wrap'}}>
+                      {ev.description}
+                    </div>
+                  </div>
+                )}
+                {ev.attendees && ev.attendees.length > 0 && (
+                  <div style={{marginBottom:12}}>
+                    <div style={{fontSize:9, color:GOLD, letterSpacing:'0.2em', fontFamily:SANS, marginBottom:4}}>
+                      ATTENDEES
+                    </div>
+                    <div style={{display:'flex', gap:6, flexWrap:'wrap'}}>
+                      {ev.attendees.map((a, ai) => (
+                        <span key={ai} style={{
+                          background:PAPER, border:`1px solid ${BORDER}`,
+                          borderRadius:3, padding:'2px 8px', fontSize:10,
+                          fontFamily:SANS, color:TEXT
+                        }}>{a}</span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {ev.meeting_link && (
+                  <div>
+                    <div style={{fontSize:9, color:GOLD, letterSpacing:'0.2em', fontFamily:SANS, marginBottom:4}}>
+                      MEETING LINK
+                    </div>
+                    <a href={ev.meeting_link} target="_blank" rel="noopener noreferrer"
+                       style={{fontSize:11, color:NAVY, fontFamily:SANS, wordBreak:'break-all'}}>
+                      {ev.meeting_link}
+                    </a>
+                  </div>
+                )}
+                {ev.calendar_link && (
+                  <div style={{marginTop:12}}>
+                    <a href={ev.calendar_link} target="_blank" rel="noopener noreferrer"
+                       style={{
+                         fontSize:10, color:TEXT_MUTED, fontFamily:SANS,
+                         textDecoration:'underline'
+                       }}>
+                      Open in Google Calendar ↗
+                    </a>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 export default function App(){
   const [pubSel, setPubSel] = useState(null);
   const [view,setView]=useState("login");
@@ -639,7 +854,7 @@ export default function App(){
           <button onClick={()=>setView("room")} style={{background:"transparent",color:TEXT_LIGHT,border:`1px solid ${BORDER}`,borderRadius:2,padding:"6px 14px",fontSize:10,letterSpacing:"0.15em",textTransform:"uppercase",cursor:"pointer",fontFamily:SANS,fontWeight:500}}>← Deal Room</button>
           <div style={{fontFamily:SERIF,fontSize:18,fontWeight:500,color:NAVY,letterSpacing:"-0.01em"}}>Admin <em style={{fontStyle:"italic",color:GOLD,fontWeight:500}}>Analytics</em></div>
           <div style={{flex:1}}/>
-          {["overview","members","documents","activity","funnel"].map(tab=>(
+          {["overview","members","documents","activity","funnel","calendar"].map(tab=>(
             <button key={tab} onClick={()=>setAdminTab(tab)} style={{background:adminTab===tab?NAVY:"transparent",color:adminTab===tab?CREAM:TEXT_LIGHT,border:`1px solid ${adminTab===tab?NAVY:BORDER}`,borderRadius:2,padding:"6px 12px",fontSize:10,cursor:"pointer",fontFamily:SANS,fontWeight:500,letterSpacing:"0.15em",textTransform:"uppercase"}}>{tab}</button>
           ))}
           <button onClick={logout} style={{background:"transparent",color:TEXT_LIGHT,border:`1px solid ${BORDER}`,borderRadius:2,padding:"6px 12px",fontSize:10,letterSpacing:"0.15em",textTransform:"uppercase",cursor:"pointer",fontFamily:SANS,fontWeight:500,marginLeft:8}}>Sign Out</button>
@@ -846,6 +1061,11 @@ export default function App(){
                 </table>
               </div>
             </div>
+          </>}
+
+          {/* CALENDAR TAB */}
+          {adminTab==="calendar"&&<>
+            <VCPCalendar />
           </>}
 
         </div>
